@@ -1,0 +1,18 @@
+/*
+Theme Name: Project Alpha
+Theme URI: https://example.com/project-alpha
+Author: Project Alpha Team
+Author URI: https://example.com
+Description: A feature-rich WordPress theme designed for manga reading, novel reading, and video streaming sites. Supports dark mode, RTL languages, responsive layouts, and AJAX-powered navigation.
+Version: 1.0.0
+Requires at least: 5.9
+Tested up to: 6.5
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: starter-theme
+Domain Path: /languages
+Tags: manga, novel, video, dark-mode, responsive, rtl-language-support
+*/
+
+/* CSS is loaded separately via enqueued stylesheets. */
