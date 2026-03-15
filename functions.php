@@ -105,6 +105,7 @@ $starter_includes = array(
 	'/inc/seo/class-manga-sitemap.php',
 
 	// -- Manga Admin -----------------------------------------------------------
+	'/inc/manga/class-manga-updates-api.php',
 	'/inc/manga/class-manga-admin.php',
 
 	// -- Admin Settings --------------------------------------------------------
@@ -133,7 +134,79 @@ foreach ( $starter_includes as $file ) {
 }
 
 /*--------------------------------------------------------------
- * 5. Theme activation hook
+ * 5. Boot all classes
+ *
+ * Classes are loaded above but not yet active. Singletons need
+ * ::get_instance(); non-singleton classes that use an init()
+ * pattern need (new Class)->init(); widgets use register_widget().
+ *-------------------------------------------------------------*/
+
+/* -- Core ------------------------------------------------------------------ */
+if ( class_exists( 'Starter_Theme_Setup' ) ) {
+	( new Starter_Theme_Setup() )->init();
+}
+if ( class_exists( 'Starter_Enqueue' ) ) {
+	new Starter_Enqueue();
+}
+if ( class_exists( 'Starter_Security' ) ) {
+	( new Starter_Security() )->init();
+}
+
+/* -- Manga ----------------------------------------------------------------- */
+if ( class_exists( 'Starter_Manga_CPT' ) )     { Starter_Manga_CPT::get_instance(); }
+if ( class_exists( 'Starter_Manga_Chapter' ) ) { Starter_Manga_Chapter::get_instance(); }
+if ( class_exists( 'Starter_Manga_Search' ) )  { Starter_Manga_Search::get_instance(); }
+if ( class_exists( 'Starter_Manga_Rating' ) )  { Starter_Manga_Rating::get_instance(); }
+if ( class_exists( 'Starter_Manga_Bookmark' ) ){ Starter_Manga_Bookmark::get_instance(); }
+if ( class_exists( 'Starter_Manga_History' ) ) { Starter_Manga_History::get_instance(); }
+if ( class_exists( 'Starter_Manga_Import' ) )  { Starter_Manga_Import::get_instance(); }
+if ( class_exists( 'Starter_MangaUpdates_API' ) ) { Starter_MangaUpdates_API::get_instance(); }
+
+/* -- Novel ----------------------------------------------------------------- */
+if ( class_exists( 'Starter_Novel_Reader' ) )        { Starter_Novel_Reader::get_instance(); }
+if ( class_exists( 'Starter_Novel_Reading_Tools' ) ) { Starter_Novel_Reading_Tools::get_instance(); }
+
+/* -- Video ----------------------------------------------------------------- */
+if ( class_exists( 'Starter_Video_Player' ) ) { Starter_Video_Player::get_instance(); }
+if ( class_exists( 'Starter_Video_Embed' ) )  { Starter_Video_Embed::get_instance(); }
+
+/* -- User ------------------------------------------------------------------ */
+if ( class_exists( 'Starter_User_Auth' ) )  { Starter_User_Auth::get_instance(); }
+if ( class_exists( 'Starter_User_Roles' ) ) { Starter_User_Roles::get_instance(); }
+
+/* -- Monetization ---------------------------------------------------------- */
+if ( class_exists( 'Starter_Coin_System' ) )    { Starter_Coin_System::get_instance(); }
+if ( class_exists( 'Starter_Revenue_Share' ) )  { Starter_Revenue_Share::get_instance(); }
+
+/* -- Protection ------------------------------------------------------------ */
+if ( class_exists( 'Starter_Chapter_Protector' ) ) { Starter_Chapter_Protector::get_instance(); }
+if ( class_exists( 'Starter_Path_Obfuscation' ) )  { Starter_Path_Obfuscation::get_instance(); }
+
+/* -- Storage --------------------------------------------------------------- */
+if ( class_exists( 'Starter_Storage_Manager' ) ) { Starter_Storage_Manager::get_instance(); }
+
+/* -- SEO ------------------------------------------------------------------- */
+if ( class_exists( 'Starter_SEO_Manager' ) )   { Starter_SEO_Manager::get_instance(); }
+if ( class_exists( 'Starter_Auto_Keywords' ) ) { Starter_Auto_Keywords::get_instance(); }
+if ( class_exists( 'Starter_Schema_Markup' ) ) { Starter_Schema_Markup::get_instance(); }
+if ( class_exists( 'Starter_Manga_Feed' ) )    { Starter_Manga_Feed::get_instance(); }
+if ( class_exists( 'Starter_Manga_Sitemap' ) ) { new Starter_Manga_Sitemap(); }
+
+/* -- Widgets --------------------------------------------------------------- */
+add_action( 'widgets_init', function() {
+	if ( class_exists( 'Starter_Hero_Slider_Widget' ) ) {
+		register_widget( 'Starter_Hero_Slider_Widget' );
+	}
+	if ( class_exists( 'Starter_Manga_Slider_Widget' ) ) {
+		register_widget( 'Starter_Manga_Slider_Widget' );
+	}
+	if ( class_exists( 'Starter_Popular_Manga_Widget' ) ) {
+		register_widget( 'Starter_Popular_Manga_Widget' );
+	}
+} );
+
+/*--------------------------------------------------------------
+ * 6. Theme activation hook
  *-------------------------------------------------------------*/
 
 register_activation_hook( __FILE__, 'starter_theme_activate' );
@@ -273,7 +346,9 @@ function starter_theme_activate() {
 	starter_theme_register_roles();
 
 	// -- Flush rewrite rules ---------------------------------------------------
-	flush_rewrite_rules();
+	// Schedule a flush on the next init so the CPT/taxonomy rewrites are
+	// already registered when flush_rewrite_rules() is called.
+	update_option( 'starter_flush_rewrites', 1 );
 
 	// -- Generate .htaccess protections ----------------------------------------
 	starter_theme_generate_htaccess();
@@ -503,6 +578,18 @@ function starter_theme_get_chapter_type( $manga_slug, $chapter_num ) {
  *-------------------------------------------------------------*/
 
 add_action( 'init', 'starter_theme_rewrite_rules' );
+add_action( 'init', 'starter_theme_maybe_flush_rewrites', 99 );
+
+/**
+ * Flush rewrite rules once after theme activation.
+ * Runs at init priority 99 so CPT and custom rules are already registered.
+ */
+function starter_theme_maybe_flush_rewrites() {
+	if ( get_option( 'starter_flush_rewrites' ) ) {
+		delete_option( 'starter_flush_rewrites' );
+		flush_rewrite_rules();
+	}
+}
 
 function starter_theme_rewrite_rules() {
 	// Chapter reading: /manga/{slug}/chapter-{num}/
