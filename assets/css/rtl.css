@@ -1,0 +1,517 @@
+/**
+ * Project Alpha - RTL (Right-to-Left) Language Support
+ *
+ * Overrides for RTL languages such as Arabic, Hebrew, Persian, Urdu.
+ * Applied when the document has dir="rtl" or the .rtl class.
+ *
+ * Table of Contents:
+ * 1. Base Direction Overrides
+ * 2. Margin & Padding Flips
+ * 3. Text Alignment
+ * 4. Float Directions
+ * 5. Flexbox & Grid Flips
+ * 6. Position Flips
+ * 7. Border Radius Flips
+ * 8. Transform Flips
+ * 9. Navigation
+ * 10. Search Bar
+ * 11. Chapter List & Reader
+ * 12. Form Elements
+ * 13. Components
+ */
+
+/* ==========================================================================
+   1. Base Direction Overrides
+   ========================================================================== */
+
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] body {
+  direction: rtl;
+}
+
+/* ==========================================================================
+   2. Margin & Padding Flips
+   ========================================================================== */
+
+/* Utility classes for margin-left become margin-right */
+[dir="rtl"] .ml-auto { margin-left: 0; margin-right: auto; }
+[dir="rtl"] .mr-auto { margin-right: 0; margin-left: auto; }
+
+[dir="rtl"] .ml-xs { margin-left: 0; margin-right: var(--space-xs); }
+[dir="rtl"] .ml-sm { margin-left: 0; margin-right: var(--space-sm); }
+[dir="rtl"] .ml-md { margin-left: 0; margin-right: var(--space-md); }
+[dir="rtl"] .ml-lg { margin-left: 0; margin-right: var(--space-lg); }
+[dir="rtl"] .ml-xl { margin-left: 0; margin-right: var(--space-xl); }
+
+[dir="rtl"] .mr-xs { margin-right: 0; margin-left: var(--space-xs); }
+[dir="rtl"] .mr-sm { margin-right: 0; margin-left: var(--space-sm); }
+[dir="rtl"] .mr-md { margin-right: 0; margin-left: var(--space-md); }
+[dir="rtl"] .mr-lg { margin-right: 0; margin-left: var(--space-lg); }
+[dir="rtl"] .mr-xl { margin-right: 0; margin-left: var(--space-xl); }
+
+[dir="rtl"] .pl-xs { padding-left: 0; padding-right: var(--space-xs); }
+[dir="rtl"] .pl-sm { padding-left: 0; padding-right: var(--space-sm); }
+[dir="rtl"] .pl-md { padding-left: 0; padding-right: var(--space-md); }
+[dir="rtl"] .pl-lg { padding-left: 0; padding-right: var(--space-lg); }
+[dir="rtl"] .pl-xl { padding-left: 0; padding-right: var(--space-xl); }
+
+[dir="rtl"] .pr-xs { padding-right: 0; padding-left: var(--space-xs); }
+[dir="rtl"] .pr-sm { padding-right: 0; padding-left: var(--space-sm); }
+[dir="rtl"] .pr-md { padding-right: 0; padding-left: var(--space-md); }
+[dir="rtl"] .pr-lg { padding-right: 0; padding-left: var(--space-lg); }
+[dir="rtl"] .pr-xl { padding-right: 0; padding-left: var(--space-xl); }
+
+/* ==========================================================================
+   3. Text Alignment
+   ========================================================================== */
+
+[dir="rtl"] .text-left { text-align: right; }
+[dir="rtl"] .text-right { text-align: left; }
+
+/* Preserve explicit alignment when needed */
+[dir="rtl"] .text-left-force { text-align: left; }
+[dir="rtl"] .text-right-force { text-align: right; }
+
+/* ==========================================================================
+   4. Float Directions
+   ========================================================================== */
+
+[dir="rtl"] .float-left { float: right; }
+[dir="rtl"] .float-right { float: left; }
+
+[dir="rtl"] .novel-content p:first-child::first-letter {
+  float: right;
+  margin-right: 0;
+  margin-left: 0.1em;
+}
+
+/* ==========================================================================
+   5. Flexbox & Grid Flips
+   ========================================================================== */
+
+/* Flex row is auto-flipped by direction, but explicitly handle cases
+   where flex-direction is hardcoded */
+[dir="rtl"] .flex-row-force-ltr {
+  flex-direction: row;
+  direction: ltr;
+}
+
+/* Breadcrumbs */
+[dir="rtl"] .breadcrumb {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .breadcrumb__separator {
+  transform: scaleX(-1);
+}
+
+/* Reader header */
+[dir="rtl"] .reader-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .reader-header__actions {
+  flex-direction: row-reverse;
+}
+
+/* Chapter end card */
+[dir="rtl"] .chapter-end__next {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .chapter-end__next-arrow {
+  margin-left: 0;
+  margin-right: auto;
+  transform: scaleX(-1);
+}
+
+/* Bottom nav stays same order (icons are universal) */
+
+/* Tag / badge lists */
+[dir="rtl"] .tag-list,
+[dir="rtl"] .badge-list {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   6. Position Flips
+   ========================================================================== */
+
+/* Sidebar */
+[dir="rtl"] .sidebar {
+  order: -1;
+}
+
+[dir="rtl"] .sidebar-left {
+  order: 1;
+}
+
+/* Novel tools panel: flip to left side */
+[dir="rtl"] .novel-tools-panel {
+  right: auto;
+  left: 0;
+  border-left: none;
+  border-right: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  transform: translateX(-100%);
+}
+
+[dir="rtl"] .novel-tools-panel--open {
+  transform: translateX(0);
+}
+
+/* Novel tools button */
+[dir="rtl"] .novel-tools-btn {
+  right: auto;
+  left: var(--space-md);
+}
+
+/* Reader page nav */
+[dir="rtl"] .reader-single-page__prev {
+  left: auto;
+  right: var(--space-md);
+}
+
+[dir="rtl"] .reader-single-page__next {
+  right: auto;
+  left: var(--space-md);
+}
+
+/* Reader progress bar direction */
+[dir="rtl"] .reader-progress-bar {
+  left: auto;
+  right: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+[dir="rtl"] .novel-progress {
+  left: auto;
+  right: 0;
+}
+
+/* Floating nav */
+[dir="rtl"] .reader-nav-float--left {
+  left: auto;
+  right: var(--space-md);
+}
+
+[dir="rtl"] .reader-nav-float--right {
+  right: auto;
+  left: var(--space-md);
+}
+
+/* Mobile menu slides from right */
+[dir="rtl"] .mobile-menu {
+  transform: translateX(100%);
+}
+
+[dir="rtl"] .mobile-menu--open {
+  transform: translateX(0);
+}
+
+/* ==========================================================================
+   7. Border Radius Flips
+   ========================================================================== */
+
+/* Items with one-sided border radius */
+[dir="rtl"] .radius-left {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+[dir="rtl"] .radius-right {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+/* Pill-left becomes pill-right */
+[dir="rtl"] .pill-start {
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+}
+
+[dir="rtl"] .pill-end {
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
+}
+
+/* Chapter select dropdown arrow */
+[dir="rtl"] .reader-chapter-select::after {
+  right: auto;
+  left: 10px;
+}
+
+[dir="rtl"] .reader-chapter-select select {
+  padding-right: var(--space-sm);
+  padding-left: var(--space-lg);
+}
+
+/* ==========================================================================
+   8. Transform Flips
+   ========================================================================== */
+
+/* Icons that point in a direction (arrows, chevrons) */
+[dir="rtl"] .icon-arrow-right,
+[dir="rtl"] .icon-chevron-right,
+[dir="rtl"] .icon-next {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] .icon-arrow-left,
+[dir="rtl"] .icon-chevron-left,
+[dir="rtl"] .icon-prev {
+  transform: scaleX(-1);
+}
+
+/* Centered transforms maintain their centering */
+[dir="rtl"] .reader-toolbar {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Hamburger menu animation stays consistent */
+[dir="rtl"] .nav-hamburger {
+  /* No flip needed for hamburger icon */
+}
+
+/* ==========================================================================
+   9. Navigation
+   ========================================================================== */
+
+[dir="rtl"] .nav-menu {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .nav-menu__item {
+  text-align: right;
+}
+
+/* Dropdown menus flip alignment */
+[dir="rtl"] .dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+[dir="rtl"] .dropdown-menu--right {
+  right: auto;
+  left: 0;
+}
+
+/* Submenu indicators */
+[dir="rtl"] .nav-menu__arrow {
+  margin-left: 0;
+  margin-right: var(--space-2xs);
+  transform: rotate(180deg);
+}
+
+/* Pagination */
+[dir="rtl"] .pagination {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .pagination__prev svg,
+[dir="rtl"] .pagination__next svg {
+  transform: scaleX(-1);
+}
+
+/* ==========================================================================
+   10. Search Bar
+   ========================================================================== */
+
+[dir="rtl"] .search-bar input {
+  padding-left: var(--space-sm);
+  padding-right: var(--space-xl);
+  text-align: right;
+}
+
+[dir="rtl"] .search-bar__icon {
+  left: auto;
+  right: var(--space-sm);
+}
+
+[dir="rtl"] .search-bar__clear {
+  right: auto;
+  left: var(--space-sm);
+}
+
+[dir="rtl"] .search-results__meta {
+  text-align: right;
+}
+
+/* ==========================================================================
+   11. Chapter List & Reader
+   ========================================================================== */
+
+/* Chapter list */
+[dir="rtl"] .chapter-list__item {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .chapter-list__number {
+  margin-right: 0;
+  margin-left: var(--space-sm);
+}
+
+[dir="rtl"] .chapter-list__date {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .chapter-list__badge {
+  margin-left: 0;
+  margin-right: var(--space-xs);
+}
+
+/* Manga reading direction: RTL (right-to-left page flow) */
+[dir="rtl"] .reader-double-page {
+  flex-direction: row-reverse;
+}
+
+/* Manga RTL mode (Japanese reading order) */
+.reader-rtl .reader-single-page__prev {
+  left: auto;
+  right: var(--space-md);
+}
+
+.reader-rtl .reader-single-page__next {
+  right: auto;
+  left: var(--space-md);
+}
+
+.reader-rtl .reader-double-page {
+  flex-direction: row-reverse;
+}
+
+/* ==========================================================================
+   12. Form Elements
+   ========================================================================== */
+
+[dir="rtl"] input[type="text"],
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="password"],
+[dir="rtl"] input[type="search"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] textarea {
+  text-align: right;
+  direction: rtl;
+}
+
+[dir="rtl"] select {
+  text-align: right;
+  direction: rtl;
+  padding-left: var(--space-xl);
+  padding-right: var(--space-sm);
+}
+
+/* Checkbox / radio label */
+[dir="rtl"] .form-check {
+  padding-left: 0;
+  padding-right: 1.5em;
+}
+
+[dir="rtl"] .form-check input {
+  margin-left: 0;
+  margin-right: -1.5em;
+}
+
+/* Form labels */
+[dir="rtl"] label {
+  text-align: right;
+}
+
+/* Input groups */
+[dir="rtl"] .input-group {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .input-group__prepend {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  border-right: 1px solid var(--input-border);
+  border-left: none;
+}
+
+[dir="rtl"] .input-group__append {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  border-left: 1px solid var(--input-border);
+  border-right: none;
+}
+
+/* Family safe toggle */
+[dir="rtl"] .family-safe-toggle {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .family-safe-toggle__switch::after {
+  left: auto;
+  right: 2px;
+}
+
+[dir="rtl"] .family-safe-toggle--active .family-safe-toggle__switch::after {
+  transform: translateX(-16px);
+}
+
+/* ==========================================================================
+   13. Components
+   ========================================================================== */
+
+/* Star ratings */
+[dir="rtl"] .star-rating {
+  flex-direction: row-reverse;
+}
+
+/* Toast notifications */
+[dir="rtl"] .toast {
+  left: var(--space-md);
+  right: auto;
+}
+
+[dir="rtl"] .toast--right {
+  right: var(--space-md);
+  left: auto;
+}
+
+/* Modals */
+[dir="rtl"] .modal__close {
+  right: auto;
+  left: var(--space-md);
+}
+
+/* Cards with icon + text */
+[dir="rtl"] .card__icon {
+  margin-right: 0;
+  margin-left: var(--space-sm);
+}
+
+/* Badges in cards */
+[dir="rtl"] .manga-card__badge {
+  left: auto;
+  right: var(--space-xs);
+}
+
+/* Comments */
+[dir="rtl"] .comment__avatar {
+  margin-right: 0;
+  margin-left: var(--space-sm);
+}
+
+[dir="rtl"] .comment__actions {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* User profile */
+[dir="rtl"] .user-profile__info {
+  text-align: right;
+}
+
+/* Responsive table data-label in RTL */
+[dir="rtl"] .responsive-table--stack td {
+  text-align: left;
+}
+
+[dir="rtl"] .responsive-table--stack td::before {
+  text-align: right;
+  margin-right: 0;
+  margin-left: var(--space-sm);
+}

@@ -104,6 +104,12 @@ $starter_includes = array(
 	'/inc/seo/class-manga-feed.php',
 	'/inc/seo/class-manga-sitemap.php',
 
+	// -- Manga Admin -----------------------------------------------------------
+	'/inc/manga/class-manga-admin.php',
+
+	// -- Admin Settings --------------------------------------------------------
+	'/inc/core/class-admin-settings.php',
+
 	// -- Widgets ---------------------------------------------------------------
 	'/inc/widgets/class-hero-slider-widget.php',
 	'/inc/widgets/class-manga-slider-widget.php',

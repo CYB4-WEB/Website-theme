@@ -1,0 +1,801 @@
+/**
+ * Project Alpha - Responsive Styles
+ *
+ * Mobile-first responsive layout with progressive enhancement.
+ * Breakpoints:
+ *   - Base:    0px+    (mobile)
+ *   - sm:      480px+  (large mobile)
+ *   - md:      768px+  (tablet)
+ *   - lg:      1024px+ (laptop)
+ *   - xl:      1200px+ (desktop)
+ *   - 2xl:     1440px+ (wide)
+ *
+ * Table of Contents:
+ * 1. Fluid Typography
+ * 2. Base / Mobile (0px+)
+ * 3. Small (480px+)
+ * 4. Medium / Tablet (768px+)
+ * 5. Large / Laptop (1024px+)
+ * 6. Extra Large / Desktop (1200px+)
+ * 7. Wide (1440px+)
+ * 8. Visibility Utilities
+ * 9. Mobile Bottom Navigation
+ * 10. Responsive Tables
+ * 11. Responsive Video Embeds
+ * 12. Print Styles
+ */
+
+/* ==========================================================================
+   1. Fluid Typography
+   ========================================================================== */
+
+:root {
+  --fluid-h1: clamp(1.75rem, 4vw + 0.5rem, 3rem);
+  --fluid-h2: clamp(1.5rem, 3vw + 0.5rem, 2.5rem);
+  --fluid-h3: clamp(1.25rem, 2vw + 0.5rem, 2rem);
+  --fluid-h4: clamp(1.125rem, 1.5vw + 0.5rem, 1.5rem);
+  --fluid-body: clamp(0.9375rem, 1vw + 0.25rem, 1.125rem);
+  --fluid-small: clamp(0.8125rem, 0.75vw + 0.25rem, 0.875rem);
+}
+
+h1, .h1 { font-size: var(--fluid-h1); }
+h2, .h2 { font-size: var(--fluid-h2); }
+h3, .h3 { font-size: var(--fluid-h3); }
+h4, .h4 { font-size: var(--fluid-h4); }
+
+/* ==========================================================================
+   2. Base / Mobile (0px+)
+   ========================================================================== */
+
+/* Layout */
+.container {
+  width: 100%;
+  padding-left: var(--space-md);
+  padding-right: var(--space-md);
+  margin: 0 auto;
+}
+
+.main-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.main-content {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Sidebar hidden on mobile */
+.sidebar {
+  display: none;
+}
+
+.sidebar-left {
+  display: none;
+}
+
+/* Manga grid: 2 columns on mobile */
+.manga-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-sm);
+}
+
+.manga-grid--compact {
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
+}
+
+/* Card adjustments */
+.manga-card__title {
+  font-size: var(--font-size-sm);
+  -webkit-line-clamp: 2;
+}
+
+.manga-card__meta {
+  font-size: var(--font-size-xs);
+}
+
+/* Navigation: hide full menu, show hamburger */
+.nav-menu {
+  display: none;
+}
+
+.nav-hamburger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.nav-hamburger__line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: currentColor;
+  position: relative;
+  transition: background var(--transition-fast);
+}
+
+.nav-hamburger__line::before,
+.nav-hamburger__line::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+  transition: transform var(--transition-fast);
+}
+
+.nav-hamburger__line::before { top: -6px; }
+.nav-hamburger__line::after { top: 6px; }
+
+/* Mobile menu overlay */
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay, 300);
+  background: var(--bg-primary);
+  padding: var(--space-xl);
+  overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-menu--open {
+  transform: translateX(0);
+}
+
+.mobile-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.mobile-menu__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.mobile-menu__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: var(--font-size-md);
+  transition: background var(--transition-fast);
+}
+
+.mobile-menu__link:hover,
+.mobile-menu__link--active {
+  background: var(--bg-card-hover);
+}
+
+/* Reader: full width, touch-friendly */
+.reader-single-page__prev,
+.reader-single-page__next {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.reader-toolbar__btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Touch-friendly chapter navigation */
+.chapter-nav-touch {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  z-index: 90;
+}
+
+.chapter-nav-touch__btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+  min-height: 56px;
+  background: var(--bg-secondary);
+  border: none;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.chapter-nav-touch__btn:active {
+  background: var(--bg-card-hover);
+}
+
+.chapter-nav-touch__btn--disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Header compact on mobile */
+.site-header {
+  padding: var(--space-xs) var(--space-md);
+}
+
+.site-header__logo {
+  max-width: 120px;
+}
+
+/* Search compact */
+.search-bar {
+  width: 100%;
+}
+
+.search-bar--inline {
+  display: none;
+}
+
+.search-toggle {
+  display: flex;
+}
+
+/* Footer stacked */
+.site-footer__grid {
+  grid-template-columns: 1fr;
+  gap: var(--space-lg);
+}
+
+/* Hero compact */
+.hero-section {
+  padding: var(--space-xl) var(--space-md);
+}
+
+.hero-section__title {
+  font-size: var(--fluid-h2);
+}
+
+/* ==========================================================================
+   3. Small (480px+)
+   ========================================================================== */
+
+@media (min-width: 480px) {
+  .container {
+    padding-left: var(--space-lg);
+    padding-right: var(--space-lg);
+  }
+
+  .manga-grid {
+    gap: var(--space-md);
+  }
+
+  .manga-card__title {
+    font-size: var(--font-size-base);
+  }
+
+  /* Better card layout on larger phones */
+  .chapter-end__next {
+    padding: var(--space-lg) var(--space-xl);
+  }
+
+  .chapter-end__actions {
+    flex-wrap: nowrap;
+  }
+
+  /* Featured slider adjustments */
+  .featured-slide__title {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ==========================================================================
+   4. Medium / Tablet (768px+)
+   ========================================================================== */
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-xl);
+    padding-right: var(--space-xl);
+  }
+
+  /* Layout: 2-column */
+  .main-layout {
+    flex-direction: row;
+  }
+
+  .main-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Show sidebar (collapsible) */
+  .sidebar {
+    display: block;
+    width: var(--sidebar-width, 260px);
+    flex-shrink: 0;
+  }
+
+  .sidebar--collapsed {
+    width: 60px;
+  }
+
+  /* Manga grid: 3 columns */
+  .manga-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Nav: show some items */
+  .nav-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  .nav-menu__secondary {
+    display: none;
+  }
+
+  /* Show inline search */
+  .search-bar--inline {
+    display: flex;
+    max-width: 280px;
+  }
+
+  .search-toggle {
+    display: none;
+  }
+
+  /* Footer: 2-column grid */
+  .site-footer__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Reader: larger page nav */
+  .reader-single-page__prev,
+  .reader-single-page__next {
+    width: 48px;
+    height: 80px;
+  }
+
+  /* Novel reader wider padding */
+  .novel-content {
+    padding: var(--space-xl) var(--space-2xl);
+  }
+
+  /* Hide touch-only chapter nav on tablet+ */
+  .chapter-nav-touch {
+    display: none;
+  }
+
+  /* Table layouts */
+  .responsive-table--stack {
+    display: table;
+  }
+
+  .responsive-table--stack thead {
+    display: table-header-group;
+  }
+
+  .responsive-table--stack tr {
+    display: table-row;
+  }
+
+  .responsive-table--stack td {
+    display: table-cell;
+    text-align: left;
+  }
+
+  .responsive-table--stack td::before {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   5. Large / Laptop (1024px+)
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  /* Layout: 3-column with sidebars */
+  .main-layout--three-col {
+    display: grid;
+    grid-template-columns: var(--sidebar-width, 260px) 1fr var(--sidebar-width, 260px);
+    gap: var(--space-xl);
+  }
+
+  .sidebar-left {
+    display: block;
+  }
+
+  /* Manga grid: 4 columns */
+  .manga-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-md);
+  }
+
+  /* Full navigation */
+  .nav-menu__secondary {
+    display: flex;
+  }
+
+  .nav-hamburger {
+    display: none;
+  }
+
+  /* Search bar wider */
+  .search-bar--inline {
+    max-width: 360px;
+  }
+
+  /* Footer: 4-column */
+  .site-footer__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  /* Reader: comfortable reading */
+  .reader-one-shot .reader-image {
+    max-width: 900px;
+  }
+
+  /* Floating nav buttons visible */
+  .reader-nav-float--sides {
+    display: flex;
+  }
+
+  /* Novel tools panel wider */
+  .novel-tools-panel {
+    width: 360px;
+  }
+
+  /* Video container adjustments */
+  .video-container {
+    padding: 0 var(--space-xl);
+  }
+}
+
+/* ==========================================================================
+   6. Extra Large / Desktop (1200px+)
+   ========================================================================== */
+
+@media (min-width: 1200px) {
+  .container {
+    max-width: var(--container-max, 1400px);
+  }
+
+  /* Manga grid: 5 columns */
+  .manga-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  /* Generous spacing */
+  .main-layout {
+    gap: var(--space-2xl);
+  }
+
+  .main-layout--three-col {
+    gap: var(--space-2xl);
+  }
+
+  /* Hero larger */
+  .hero-section {
+    padding: var(--space-3xl) var(--space-2xl);
+  }
+
+  /* Search bar full size */
+  .search-bar--inline {
+    max-width: 480px;
+  }
+
+  /* Video theater taller */
+  .video-theater {
+    height: 80vh;
+    max-height: 1000px;
+  }
+}
+
+/* ==========================================================================
+   7. Wide (1440px+)
+   ========================================================================== */
+
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1440px;
+    padding-left: var(--space-2xl);
+    padding-right: var(--space-2xl);
+  }
+
+  /* Manga grid: 6 columns on very wide screens */
+  .manga-grid--wide {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  /* Even more generous spacing */
+  .section {
+    padding: var(--space-3xl) 0;
+  }
+}
+
+/* ==========================================================================
+   8. Visibility Utilities
+   ========================================================================== */
+
+/* Mobile only (< 768px) */
+.hide-mobile {
+  display: none !important;
+}
+
+.show-mobile {
+  display: block !important;
+}
+
+@media (min-width: 768px) {
+  .hide-mobile {
+    display: block !important;
+  }
+
+  .show-mobile {
+    display: none !important;
+  }
+}
+
+/* Tablet only (768px - 1023px) */
+.hide-tablet {
+  /* visible by default */
+}
+
+.show-tablet {
+  display: none !important;
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hide-tablet {
+    display: none !important;
+  }
+
+  .show-tablet {
+    display: block !important;
+  }
+}
+
+/* Desktop only (1024px+) */
+.hide-desktop {
+  /* visible by default */
+}
+
+.show-desktop {
+  display: none !important;
+}
+
+@media (min-width: 1024px) {
+  .hide-desktop {
+    display: none !important;
+  }
+
+  .show-desktop {
+    display: block !important;
+  }
+}
+
+/* Inline variants */
+.show-mobile-inline { display: inline !important; }
+.show-tablet-inline { display: none !important; }
+.show-desktop-inline { display: none !important; }
+
+@media (min-width: 768px) {
+  .show-mobile-inline { display: none !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .show-tablet-inline { display: inline !important; }
+}
+
+@media (min-width: 1024px) {
+  .show-desktop-inline { display: inline !important; }
+}
+
+/* Flex variants */
+.show-mobile-flex { display: flex !important; }
+.show-tablet-flex { display: none !important; }
+.show-desktop-flex { display: none !important; }
+
+@media (min-width: 768px) {
+  .show-mobile-flex { display: none !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .show-tablet-flex { display: flex !important; }
+}
+
+@media (min-width: 1024px) {
+  .show-desktop-flex { display: flex !important; }
+}
+
+/* ==========================================================================
+   9. Mobile Bottom Navigation
+   ========================================================================== */
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-sticky, 200);
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-xs) 0;
+  min-height: 56px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  font-size: 10px;
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.bottom-nav__item:hover,
+.bottom-nav__item--active {
+  color: var(--color-primary, #6C5CE7);
+}
+
+.bottom-nav__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.bottom-nav__label {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Hide bottom nav on desktop */
+@media (min-width: 1024px) {
+  .bottom-nav {
+    display: none;
+  }
+}
+
+/* Add body padding when bottom nav is visible (mobile) */
+@media (max-width: 1023px) {
+  body.has-bottom-nav {
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ==========================================================================
+   10. Responsive Tables
+   ========================================================================== */
+
+/* Stack table rows on mobile */
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table table {
+  min-width: 600px;
+}
+
+/* Alternative: stacked layout on mobile */
+.responsive-table--stack table {
+  min-width: 0;
+}
+
+.responsive-table--stack thead {
+  display: none;
+}
+
+.responsive-table--stack tr {
+  display: block;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.responsive-table--stack td {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2xs) 0;
+  text-align: right;
+}
+
+.responsive-table--stack td::before {
+  content: attr(data-label);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-align: left;
+  margin-right: var(--space-sm);
+}
+
+/* ==========================================================================
+   11. Responsive Video Embeds
+   ========================================================================== */
+
+.responsive-embed {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 */
+  height: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.responsive-embed--4x3 {
+  padding-bottom: 75%;
+}
+
+.responsive-embed--1x1 {
+  padding-bottom: 100%;
+}
+
+.responsive-embed iframe,
+.responsive-embed video,
+.responsive-embed embed,
+.responsive-embed object {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ==========================================================================
+   12. Print Styles
+   ========================================================================== */
+
+@media print {
+  .bottom-nav,
+  .reader-toolbar,
+  .reader-header,
+  .reader-progress-bar,
+  .reader-nav-float,
+  .novel-tools-btn,
+  .novel-tools-panel,
+  .mobile-menu,
+  .nav-hamburger,
+  .search-bar,
+  .sidebar,
+  .site-footer {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+
+  .novel-content {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+  }
+}

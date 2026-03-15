@@ -1,0 +1,1057 @@
+/**
+ * Project Alpha - Reader Styles
+ *
+ * Styles for the manga, novel, and video reader views.
+ * Supports multiple reading modes and content safety features.
+ *
+ * Table of Contents:
+ * 1. Reader Container & Layout
+ * 2. Reader Header & Navigation
+ * 3. Reader Toolbar
+ * 4. Reader Progress Bar
+ * 5. Manga Reader (Image-Based)
+ * 6. Page Navigation
+ * 7. Chapter Selection
+ * 8. Adult Warning & Safety
+ * 9. Loading States
+ * 10. Keyboard Hints
+ * 11. Novel Reader
+ * 12. Video Reader
+ * 13. Chapter End Section
+ */
+
+/* ==========================================================================
+   1. Reader Container & Layout
+   ========================================================================== */
+
+.reader-container {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.reader-container--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow-y: auto;
+}
+
+.reader-body {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ==========================================================================
+   2. Reader Header & Navigation
+   ========================================================================== */
+
+.reader-header {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) var(--space-md);
+  min-height: 48px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+  backdrop-filter: blur(var(--glass-blur, 10px));
+  border-bottom: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.reader-header--hidden {
+  transform: translateY(-100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.reader-header__back {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40%;
+}
+
+.reader-header__back:hover {
+  color: var(--color-primary);
+}
+
+.reader-header__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  padding: 0 var(--space-sm);
+}
+
+.reader-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+/* ==========================================================================
+   3. Reader Toolbar
+   ========================================================================== */
+
+.reader-toolbar {
+  position: fixed;
+  bottom: var(--space-lg);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--glass-bg-medium, rgba(255, 255, 255, 0.12));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reader-toolbar--hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(20px);
+  pointer-events: none;
+}
+
+.reader-toolbar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  position: relative;
+}
+
+.reader-toolbar__btn:hover {
+  background: var(--bg-card-hover, rgba(255, 255, 255, 0.08));
+  color: var(--color-primary);
+}
+
+.reader-toolbar__btn--active {
+  background: rgba(108, 92, 231, 0.15);
+  color: var(--color-primary);
+}
+
+.reader-toolbar__btn svg,
+.reader-toolbar__btn i {
+  width: 20px;
+  height: 20px;
+}
+
+.reader-toolbar__divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+  margin: 0 var(--space-2xs);
+}
+
+/* ==========================================================================
+   4. Reader Progress Bar
+   ========================================================================== */
+
+.reader-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 101;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary, #6C5CE7),
+    var(--color-secondary, #a29bfe)
+  );
+  border-radius: 0 2px 2px 0;
+  transition: width 0.15s ease-out;
+  will-change: width;
+  /* width is set via JS: e.g. width: 45%; */
+}
+
+.reader-progress-bar::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 80px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3)
+  );
+  border-radius: inherit;
+}
+
+/* ==========================================================================
+   5. Manga Reader (Image-Based)
+   ========================================================================== */
+
+.reader-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Long-strip / one-shot mode: seamless vertical scroll */
+.reader-one-shot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.reader-one-shot .reader-image {
+  margin: 0;
+  display: block;
+  width: 100%;
+  max-width: 900px;
+}
+
+/* Remove any gap between consecutive images */
+.reader-one-shot .reader-image + .reader-image {
+  margin-top: 0;
+}
+
+/* Single page mode: centered with side nav */
+.reader-single-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 48px);
+  position: relative;
+  width: 100%;
+  padding: var(--space-md);
+}
+
+.reader-single-page .reader-image {
+  max-height: calc(100vh - 96px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.reader-single-page__prev,
+.reader-single-page__next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 80px;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--transition-fast);
+  z-index: 10;
+}
+
+.reader-single-page__prev:hover,
+.reader-single-page__next:hover {
+  opacity: 1;
+}
+
+.reader-single-page__prev {
+  left: var(--space-md);
+}
+
+.reader-single-page__next {
+  right: var(--space-md);
+}
+
+/* Double page spread */
+.reader-double-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  min-height: calc(100vh - 48px);
+  padding: var(--space-md);
+}
+
+.reader-double-page .reader-image {
+  max-width: 50%;
+  max-height: calc(100vh - 96px);
+  object-fit: contain;
+}
+
+/* Canvas-based rendering */
+.reader-canvas {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ==========================================================================
+   6. Page Navigation (Floating)
+   ========================================================================== */
+
+.reader-nav-float {
+  position: fixed;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.reader-nav-float--bottom {
+  bottom: var(--space-xl);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.reader-nav-float--sides {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.reader-nav-float--left {
+  left: var(--space-md);
+}
+
+.reader-nav-float--right {
+  right: var(--space-md);
+}
+
+.reader-nav-float__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--glass-bg-medium, rgba(255, 255, 255, 0.12));
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.reader-nav-float__btn:hover {
+  background: var(--glass-bg-heavy, rgba(255, 255, 255, 0.18));
+  transform: scale(1.05);
+}
+
+.reader-nav-float__btn--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   7. Chapter Selection
+   ========================================================================== */
+
+.reader-chapter-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.reader-chapter-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: var(--space-2xs) var(--space-lg) var(--space-2xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reader-chapter-select::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--text-secondary);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   8. Adult Warning & Safety
+   ========================================================================== */
+
+.adult-warning-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.8);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+.adult-warning-overlay__card {
+  max-width: 480px;
+  width: 90%;
+  padding: var(--space-2xl);
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  text-align: center;
+}
+
+.adult-warning-overlay__icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+  color: var(--color-warning, #fdcb6e);
+}
+
+.adult-warning-overlay__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-sm);
+}
+
+.adult-warning-overlay__text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-lg);
+  line-height: var(--line-height-relaxed);
+}
+
+.adult-warning-overlay__actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+.adult-warning-overlay__confirm {
+  padding: var(--space-sm) var(--space-xl);
+  background: var(--color-primary, #6C5CE7);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.adult-warning-overlay__confirm:hover {
+  background: var(--color-primary-light, #a29bfe);
+}
+
+.adult-warning-overlay__cancel {
+  padding: var(--space-sm) var(--space-xl);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.adult-warning-overlay__cancel:hover {
+  background: var(--bg-card-hover);
+}
+
+/* Family safe toggle */
+.family-safe-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+}
+
+.family-safe-toggle__switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--text-tertiary);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+.family-safe-toggle__switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 50%;
+  transition: transform var(--transition-fast);
+}
+
+.family-safe-toggle--active .family-safe-toggle__switch {
+  background: var(--color-success, #00b894);
+}
+
+.family-safe-toggle--active .family-safe-toggle__switch::after {
+  transform: translateX(16px);
+}
+
+/* ==========================================================================
+   9. Loading States
+   ========================================================================== */
+
+.reader-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 400px;
+  position: relative;
+}
+
+.reader-loading__skeleton {
+  width: 100%;
+  max-width: 900px;
+  aspect-ratio: 2 / 3;
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary, #1a1a28) 25%,
+    var(--bg-card-hover, rgba(255, 255, 255, 0.08)) 50%,
+    var(--bg-tertiary, #1a1a28) 75%
+  );
+  background-size: 200% 100%;
+  animation: reader-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes reader-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.reader-loading__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--color-primary, #6C5CE7);
+  border-radius: 50%;
+  animation: reader-spin 0.8s linear infinite;
+}
+
+@keyframes reader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   10. Keyboard Hints
+   ========================================================================== */
+
+.reader-keyboard-hints {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.reader-keyboard-hints--visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.reader-keyboard-hints__panel {
+  max-width: 500px;
+  width: 90%;
+  padding: var(--space-xl);
+  background: var(--bg-card, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+}
+
+.reader-keyboard-hints__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-md);
+}
+
+.reader-keyboard-hints__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.reader-keyboard-hints__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.reader-keyboard-hints__item:last-child {
+  border-bottom: none;
+}
+
+.reader-keyboard-hints__key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+}
+
+.reader-keyboard-hints__action {
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ==========================================================================
+   11. Novel Reader
+   ========================================================================== */
+
+/* Novel CSS custom properties */
+.novel-reader {
+  --novel-bg: var(--bg-primary);
+  --novel-color: var(--text-primary);
+  --novel-font: 'Georgia', 'Noto Serif', serif;
+  --novel-size: 1.125rem;
+  --novel-line-height: 1.8;
+}
+
+.novel-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-xl);
+  background: var(--novel-bg);
+  color: var(--novel-color);
+  font-family: var(--novel-font);
+  font-size: var(--novel-size);
+  line-height: var(--novel-line-height);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.novel-content p {
+  margin-bottom: 1.2em;
+  text-indent: 1.5em;
+}
+
+.novel-content p:first-child {
+  text-indent: 0;
+}
+
+.novel-content p:first-child::first-letter {
+  font-size: 2.5em;
+  float: left;
+  line-height: 1;
+  margin-right: 0.1em;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary, #6C5CE7);
+}
+
+.novel-content hr {
+  border: none;
+  text-align: center;
+  margin: var(--space-xl) 0;
+}
+
+.novel-content hr::before {
+  content: '* * *';
+  color: var(--text-tertiary);
+  letter-spacing: 1em;
+}
+
+/* Novel tools panel */
+.novel-tools-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  z-index: 200;
+  background: var(--glass-bg-heavy, rgba(255, 255, 255, 0.18));
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  backdrop-filter: blur(var(--glass-blur-heavy, 20px));
+  border-left: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  box-shadow: var(--shadow-xl);
+  padding: var(--space-xl);
+  overflow-y: auto;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.novel-tools-panel--open {
+  transform: translateX(0);
+}
+
+.novel-tools-panel__section {
+  margin-bottom: var(--space-lg);
+}
+
+.novel-tools-panel__label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-xs);
+}
+
+.novel-tools-panel__slider {
+  width: 100%;
+  accent-color: var(--color-primary, #6C5CE7);
+}
+
+/* Novel tools floating button */
+.novel-tools-btn {
+  position: fixed;
+  right: var(--space-md);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 199;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: var(--glass-bg-medium, rgba(255, 255, 255, 0.12));
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: var(--radius-full);
+  color: var(--text-primary);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.novel-tools-btn:hover {
+  background: var(--glass-bg-heavy, rgba(255, 255, 255, 0.18));
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Novel progress bar */
+.novel-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 101;
+  height: 2px;
+  background: var(--color-primary, #6C5CE7);
+  transition: width 0.1s linear;
+}
+
+/* Novel pagination */
+.novel-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-xl) 0;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.novel-pagination__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.novel-pagination__btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--color-primary);
+}
+
+.novel-pagination__btn--disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.novel-pagination__current {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   12. Video Reader
+   ========================================================================== */
+
+.video-container {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+}
+
+.video-container__wrapper {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.video-container__wrapper iframe,
+.video-container__wrapper video,
+.video-container__wrapper embed,
+.video-container__wrapper object {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Theater mode */
+.video-theater {
+  width: 100%;
+  height: 80vh;
+  max-height: 900px;
+  background: #000;
+}
+
+.video-theater iframe,
+.video-theater video {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Video info below player */
+.video-info {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+}
+
+.video-info__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--space-sm);
+}
+
+.video-info__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.video-info__description {
+  color: var(--text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.video-info__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-color);
+}
+
+/* ==========================================================================
+   13. Chapter End Section
+   ========================================================================== */
+
+.chapter-end {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: var(--space-2xl) var(--space-md);
+}
+
+.chapter-end__divider {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.chapter-end__divider::before,
+.chapter-end__divider::after {
+  content: '';
+  display: inline-block;
+  width: 60px;
+  height: 1px;
+  background: var(--border-color);
+  vertical-align: middle;
+  margin: 0 var(--space-sm);
+}
+
+/* Next chapter card */
+.chapter-end__next {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  margin-bottom: var(--space-lg);
+}
+
+.chapter-end__next:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow-primary, 0 0 20px rgba(108, 92, 231, 0.15));
+}
+
+.chapter-end__next-label {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.chapter-end__next-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-top: var(--space-2xs);
+}
+
+.chapter-end__next-arrow {
+  margin-left: auto;
+  font-size: var(--font-size-xl);
+  color: var(--color-primary);
+}
+
+/* Back to manga / actions */
+.chapter-end__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xl);
+}
+
+.chapter-end__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.chapter-end__btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--color-primary);
+}
+
+.chapter-end__btn--primary {
+  background: var(--color-primary, #6C5CE7);
+  border-color: var(--color-primary, #6C5CE7);
+  color: #ffffff;
+}
+
+.chapter-end__btn--primary:hover {
+  background: var(--color-primary-light, #a29bfe);
+  border-color: var(--color-primary-light, #a29bfe);
+}
+
+/* Comments section at chapter end */
+.chapter-end__comments {
+  padding-top: var(--space-xl);
+  border-top: 1px solid var(--border-color);
+}
+
+.chapter-end__comments-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-md);
+}
