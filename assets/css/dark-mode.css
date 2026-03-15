@@ -1,0 +1,529 @@
+/**
+ * Project Alpha - Dark Mode / Theme Styles
+ *
+ * Multi-theme support: Light, Dark, Sepia, and High Contrast.
+ * Extends the base CSS custom properties defined in main.css.
+ *
+ * Table of Contents:
+ * 1. Theme Transitions
+ * 2. Light Theme
+ * 3. Dark Theme
+ * 4. Sepia Theme
+ * 5. High Contrast Theme
+ * 6. Scrollbar Styles
+ * 7. Form Elements
+ * 8. Images & Media
+ * 9. Selection Colors
+ * 10. Code Blocks
+ */
+
+/* ==========================================================================
+   1. Theme Transitions
+   ========================================================================== */
+
+/**
+ * Smooth color transitions when switching between themes.
+ * Applied broadly but limited to color-related properties for performance.
+ */
+body,
+.site-header,
+.site-footer,
+.sidebar,
+.card,
+.glass-card,
+.manga-card,
+.btn,
+input,
+select,
+textarea,
+.modal,
+.dropdown-menu,
+.breadcrumb,
+.badge,
+.chapter-list-item,
+.comment,
+.widget,
+pre,
+code {
+  transition: color 0.3s ease,
+              background-color 0.3s ease,
+              border-color 0.3s ease;
+}
+
+/* ==========================================================================
+   2. Light Theme
+   ========================================================================== */
+
+[data-theme="light"] {
+  --bg-primary: #f5f6fa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #eef0f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8f9fc;
+
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a68;
+  --text-tertiary: #8888a4;
+  --text-inverse: #ffffff;
+
+  --border-color: #e0e0e8;
+  --border-color-light: #eeeef4;
+
+  --scrollbar-track: #f0f0f5;
+  --scrollbar-thumb: #c0c0d0;
+
+  --input-bg: #ffffff;
+  --input-border: #d0d0dd;
+
+  --selection-bg: rgba(108, 92, 231, 0.25);
+  --selection-color: #1a1a2e;
+
+  --code-bg: #f0f0f5;
+  --code-border: #e0e0e8;
+  --code-color: #e84393;
+  --pre-bg: #1e1e2e;
+  --pre-color: #e8e8f0;
+
+  --shadow-ambient: rgba(0, 0, 0, 0.06);
+  --img-brightness: 1;
+}
+
+/* ==========================================================================
+   3. Dark Theme
+   ========================================================================== */
+
+[data-theme="dark"] {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1a1a28;
+  --bg-card: rgba(255, 255, 255, 0.05);
+  --bg-card-hover: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0b8;
+  --text-tertiary: #6a6a80;
+  --text-inverse: #0a0a0f;
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-color-light: rgba(255, 255, 255, 0.05);
+
+  --scrollbar-track: #0a0a0f;
+  --scrollbar-thumb: #2a2a3a;
+
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.12);
+
+  --selection-bg: rgba(108, 92, 231, 0.45);
+  --selection-color: #ffffff;
+
+  --code-bg: rgba(255, 255, 255, 0.06);
+  --code-border: rgba(255, 255, 255, 0.1);
+  --code-color: #fd79a8;
+  --pre-bg: #0d0d14;
+  --pre-color: #c8c8d8;
+
+  --shadow-ambient: rgba(0, 0, 0, 0.4);
+  --img-brightness: 0.9;
+
+  color-scheme: dark;
+}
+
+/* Dark theme body */
+[data-theme="dark"] body {
+  background-color: #0a0a0f;
+  color: #e0e0e0;
+}
+
+/* ==========================================================================
+   4. Sepia Theme (Novel Reading)
+   ========================================================================== */
+
+[data-theme="sepia"] {
+  --bg-primary: #f4ecd8;
+  --bg-secondary: #faf6ee;
+  --bg-tertiary: #ede5d0;
+  --bg-card: #faf6ee;
+  --bg-card-hover: #f0e8d4;
+
+  --text-primary: #5b4636;
+  --text-secondary: #7a6652;
+  --text-tertiary: #9a8a76;
+  --text-inverse: #faf6ee;
+
+  --border-color: #d4c8a8;
+  --border-color-light: #e4dcc4;
+
+  --scrollbar-track: #ede5d0;
+  --scrollbar-thumb: #c4b898;
+
+  --input-bg: #faf6ee;
+  --input-border: #d4c8a8;
+
+  --selection-bg: rgba(139, 109, 63, 0.3);
+  --selection-color: #5b4636;
+
+  --code-bg: #ede5d0;
+  --code-border: #d4c8a8;
+  --code-color: #8b4513;
+  --pre-bg: #3e2f20;
+  --pre-color: #e8dcc8;
+
+  --shadow-ambient: rgba(90, 70, 40, 0.1);
+  --img-brightness: 0.95;
+
+  /* Override primary color to match warm tone */
+  --color-primary: #8b6d3f;
+  --color-primary-light: #a68b5b;
+  --color-primary-dark: #6e5530;
+}
+
+[data-theme="sepia"] body {
+  background-color: #f4ecd8;
+  color: #5b4636;
+}
+
+/* ==========================================================================
+   5. High Contrast Theme (Accessibility)
+   ========================================================================== */
+
+[data-theme="high-contrast"] {
+  --bg-primary: #000000;
+  --bg-secondary: #0a0a0a;
+  --bg-tertiary: #141414;
+  --bg-card: #0a0a0a;
+  --bg-card-hover: #1a1a1a;
+
+  --text-primary: #ffffff;
+  --text-secondary: #f0f0f0;
+  --text-tertiary: #d0d0d0;
+  --text-inverse: #000000;
+
+  --border-color: #ffffff;
+  --border-color-light: #a0a0a0;
+
+  --scrollbar-track: #000000;
+  --scrollbar-thumb: #ffffff;
+
+  --input-bg: #0a0a0a;
+  --input-border: #ffffff;
+
+  --selection-bg: #ffffff;
+  --selection-color: #000000;
+
+  --code-bg: #1a1a1a;
+  --code-border: #ffffff;
+  --code-color: #ffff00;
+  --pre-bg: #0a0a0a;
+  --pre-color: #ffffff;
+
+  --shadow-ambient: none;
+  --img-brightness: 1;
+
+  /* High contrast overrides for primary colors */
+  --color-primary: #8080ff;
+  --color-primary-light: #a0a0ff;
+  --color-primary-dark: #6060ff;
+  --color-accent: #ff80a0;
+
+  color-scheme: dark;
+}
+
+[data-theme="high-contrast"] body {
+  background-color: #000000;
+  color: #ffffff;
+}
+
+/* Stronger focus outlines for high contrast */
+[data-theme="high-contrast"] :focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 2px;
+}
+
+[data-theme="high-contrast"] a {
+  color: #80b0ff;
+  text-decoration: underline;
+}
+
+[data-theme="high-contrast"] a:hover {
+  color: #ffff00;
+}
+
+[data-theme="high-contrast"] .btn {
+  border: 2px solid #ffffff;
+}
+
+/* ==========================================================================
+   6. Scrollbar Styles
+   ========================================================================== */
+
+/* Dark mode scrollbar */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #3a3a4e;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+/* Sepia scrollbar */
+[data-theme="sepia"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="sepia"] ::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+[data-theme="sepia"] ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+[data-theme="sepia"] ::-webkit-scrollbar-thumb:hover {
+  background: #b0a488;
+}
+
+/* High contrast scrollbar */
+[data-theme="high-contrast"] ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-track {
+  background: #000000;
+  border: 1px solid #ffffff;
+}
+
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border-radius: 0;
+}
+
+/* Firefox scrollbar */
+[data-theme="dark"] * {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+[data-theme="sepia"] * {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+[data-theme="high-contrast"] * {
+  scrollbar-color: #ffffff #000000;
+  scrollbar-width: auto;
+}
+
+/* ==========================================================================
+   7. Form Elements
+   ========================================================================== */
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+}
+
+[data-theme="dark"] select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Sepia form elements */
+[data-theme="sepia"] input,
+[data-theme="sepia"] select,
+[data-theme="sepia"] textarea {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-primary);
+}
+
+[data-theme="sepia"] input::placeholder,
+[data-theme="sepia"] textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+[data-theme="sepia"] input:focus,
+[data-theme="sepia"] select:focus,
+[data-theme="sepia"] textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(139, 109, 63, 0.2);
+}
+
+/* High contrast form elements */
+[data-theme="high-contrast"] input,
+[data-theme="high-contrast"] select,
+[data-theme="high-contrast"] textarea {
+  background-color: var(--input-bg);
+  border: 2px solid #ffffff;
+  color: #ffffff;
+}
+
+[data-theme="high-contrast"] input::placeholder,
+[data-theme="high-contrast"] textarea::placeholder {
+  color: #a0a0a0;
+}
+
+/* ==========================================================================
+   8. Images & Media
+   ========================================================================== */
+
+[data-theme="dark"] img {
+  filter: brightness(0.9);
+}
+
+/* Don't dim user avatars or logos */
+[data-theme="dark"] img.avatar,
+[data-theme="dark"] img.site-logo,
+[data-theme="dark"] .manga-card__cover img {
+  filter: brightness(1);
+}
+
+[data-theme="sepia"] img {
+  filter: brightness(0.95) sepia(0.1);
+}
+
+[data-theme="sepia"] img.avatar,
+[data-theme="sepia"] img.site-logo {
+  filter: brightness(1);
+}
+
+[data-theme="high-contrast"] img {
+  filter: contrast(1.1);
+}
+
+/* ==========================================================================
+   9. Selection Colors
+   ========================================================================== */
+
+[data-theme="light"] ::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
+}
+
+[data-theme="dark"] ::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
+}
+
+[data-theme="sepia"] ::selection {
+  background: var(--selection-bg);
+  color: var(--selection-color);
+}
+
+[data-theme="high-contrast"] ::selection {
+  background: #ffffff;
+  color: #000000;
+}
+
+/* ==========================================================================
+   10. Code Blocks
+   ========================================================================== */
+
+[data-theme="dark"] code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--code-color);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.875em;
+}
+
+[data-theme="dark"] pre {
+  background: var(--pre-bg);
+  color: var(--pre-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-lg, 1.5rem);
+  overflow-x: auto;
+}
+
+[data-theme="dark"] pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Sepia code */
+[data-theme="sepia"] code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  color: var(--code-color);
+  padding: 0.15em 0.4em;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.875em;
+}
+
+[data-theme="sepia"] pre {
+  background: var(--pre-bg);
+  color: var(--pre-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-lg, 1.5rem);
+  overflow-x: auto;
+}
+
+[data-theme="sepia"] pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* High contrast code */
+[data-theme="high-contrast"] code {
+  background: var(--code-bg);
+  border: 2px solid #ffffff;
+  color: var(--code-color);
+  padding: 0.15em 0.4em;
+  border-radius: 0;
+  font-size: 0.875em;
+}
+
+[data-theme="high-contrast"] pre {
+  background: var(--pre-bg);
+  color: var(--pre-color);
+  border: 2px solid #ffffff;
+  border-radius: 0;
+  padding: var(--space-lg, 1.5rem);
+  overflow-x: auto;
+}
+
+[data-theme="high-contrast"] pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+}
