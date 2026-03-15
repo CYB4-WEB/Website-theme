@@ -1,0 +1,545 @@
+/**
+ * Project Alpha - Glassmorphism Effects
+ *
+ * Frosted glass UI effects using backdrop-filter.
+ * Includes fallbacks for browsers without support.
+ *
+ * Table of Contents:
+ * 1. Base Glass Mixin Variables
+ * 2. Glass Card
+ * 3. Glass Navigation
+ * 4. Glass Sidebar
+ * 5. Glass Modal
+ * 6. Glass Hero
+ * 7. Glass Input
+ * 8. Glass Badge
+ * 9. Intensity Levels
+ * 10. Fallbacks
+ */
+
+/* ==========================================================================
+   1. Base Glass Variables
+   ========================================================================== */
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.05);
+  --glass-bg-light: rgba(255, 255, 255, 0.08);
+  --glass-bg-medium: rgba(255, 255, 255, 0.12);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-strong: rgba(255, 255, 255, 0.18);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  --glass-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.3);
+  --glass-blur: 10px;
+  --glass-blur-light: 6px;
+  --glass-blur-heavy: 20px;
+}
+
+[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-bg-light: rgba(255, 255, 255, 0.45);
+  --glass-bg-medium: rgba(255, 255, 255, 0.7);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-border-strong: rgba(255, 255, 255, 0.7);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --glass-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.12);
+}
+
+/* ==========================================================================
+   2. Glass Card
+   ========================================================================== */
+
+.glass-card {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--glass-shadow);
+  transition: background var(--transition-base, 250ms ease),
+              box-shadow var(--transition-base, 250ms ease),
+              transform var(--transition-base, 250ms ease);
+}
+
+.glass-card:hover {
+  background: var(--glass-bg-light);
+  box-shadow: var(--glass-shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Glass card with subtle inner glow */
+.glass-card--glow {
+  box-shadow:
+    var(--glass-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Glass card with colored tint */
+.glass-card--primary {
+  background: rgba(108, 92, 231, 0.08);
+  border-color: rgba(108, 92, 231, 0.15);
+}
+
+.glass-card--secondary {
+  background: rgba(0, 206, 201, 0.08);
+  border-color: rgba(0, 206, 201, 0.15);
+}
+
+.glass-card--accent {
+  background: rgba(253, 121, 168, 0.08);
+  border-color: rgba(253, 121, 168, 0.15);
+}
+
+/* ==========================================================================
+   3. Glass Navigation
+   ========================================================================== */
+
+.glass-nav {
+  background: var(--glass-bg-medium);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.1);
+  transition: background var(--transition-base, 250ms ease);
+}
+
+/* When header is scrolled, intensify the glass effect */
+.glass-nav--scrolled {
+  background: var(--glass-bg-heavy);
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(200%);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Glass nav dropdown */
+.glass-nav__dropdown {
+  background: var(--glass-bg-medium);
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--glass-shadow);
+}
+
+/* ==========================================================================
+   4. Glass Sidebar
+   ========================================================================== */
+
+.glass-sidebar {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.05);
+}
+
+/* Glass sidebar widget */
+.glass-sidebar__widget {
+  background: var(--glass-bg-light);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-md, 1rem);
+  margin-bottom: var(--space-md, 1rem);
+}
+
+/* Right sidebar variant */
+.glass-sidebar--right {
+  border-right: none;
+  border-left: 1px solid var(--glass-border);
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.05);
+}
+
+/* ==========================================================================
+   5. Glass Modal
+   ========================================================================== */
+
+.glass-modal {
+  background: var(--glass-bg-medium);
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(180%);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(180%);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* Glass modal overlay (background behind the modal) */
+.glass-modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* Glass modal header */
+.glass-modal__header {
+  border-bottom: 1px solid var(--glass-border);
+  padding: var(--space-md, 1rem) var(--space-lg, 1.5rem);
+}
+
+/* Glass modal footer */
+.glass-modal__footer {
+  border-top: 1px solid var(--glass-border);
+  padding: var(--space-md, 1rem) var(--space-lg, 1.5rem);
+}
+
+/* ==========================================================================
+   6. Glass Hero
+   ========================================================================== */
+
+.glass-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(108, 92, 231, 0.15) 0%,
+    rgba(0, 206, 201, 0.1) 50%,
+    rgba(253, 121, 168, 0.1) 100%
+  );
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  z-index: 1;
+}
+
+.glass-hero__content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Glass info card within hero */
+.glass-hero__info-card {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
+  backdrop-filter: blur(var(--glass-blur-heavy));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-lg, 1.5rem);
+}
+
+/* Decorative floating glass shapes for hero */
+.glass-hero__shape {
+  position: absolute;
+  border-radius: var(--radius-full, 9999px);
+  background: rgba(108, 92, 231, 0.1);
+  -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
+  pointer-events: none;
+}
+
+.glass-hero__shape--1 {
+  width: 300px;
+  height: 300px;
+  top: -50px;
+  right: -100px;
+  background: rgba(108, 92, 231, 0.08);
+}
+
+.glass-hero__shape--2 {
+  width: 200px;
+  height: 200px;
+  bottom: -40px;
+  left: -60px;
+  background: rgba(0, 206, 201, 0.08);
+}
+
+/* ==========================================================================
+   7. Glass Input
+   ========================================================================== */
+
+.glass-input {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-xs, 0.5rem) var(--space-sm, 0.75rem);
+  color: var(--text-primary, #e8e8f0);
+  font-size: var(--font-size-sm, 0.875rem);
+  transition: border-color var(--transition-fast, 150ms ease),
+              box-shadow var(--transition-fast, 150ms ease),
+              background var(--transition-fast, 150ms ease);
+  width: 100%;
+}
+
+.glass-input::placeholder {
+  color: var(--text-tertiary, #6a6a80);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: rgba(108, 92, 231, 0.5);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+  background: var(--glass-bg-light);
+}
+
+/* Glass search input (pill-shaped) */
+.glass-input--search {
+  border-radius: var(--radius-full, 9999px);
+  padding-left: var(--space-xl, 2rem);
+}
+
+/* Glass textarea */
+.glass-textarea {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-sm, 0.75rem);
+  color: var(--text-primary, #e8e8f0);
+  resize: vertical;
+  min-height: 100px;
+  width: 100%;
+}
+
+.glass-textarea:focus {
+  outline: none;
+  border-color: rgba(108, 92, 231, 0.5);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+  background: var(--glass-bg-light);
+}
+
+/* Glass select */
+.glass-select {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md, 8px);
+  padding: var(--space-xs, 0.5rem) var(--space-sm, 0.75rem);
+  color: var(--text-primary, #e8e8f0);
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+/* ==========================================================================
+   8. Glass Badge
+   ========================================================================== */
+
+.glass-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px var(--space-xs, 0.5rem);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full, 9999px);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary, #e8e8f0);
+  white-space: nowrap;
+}
+
+/* Colored glass badges */
+.glass-badge--primary {
+  background: rgba(108, 92, 231, 0.15);
+  border-color: rgba(108, 92, 231, 0.25);
+  color: #a29bfe;
+}
+
+.glass-badge--secondary {
+  background: rgba(0, 206, 201, 0.15);
+  border-color: rgba(0, 206, 201, 0.25);
+  color: #55efc4;
+}
+
+.glass-badge--accent {
+  background: rgba(253, 121, 168, 0.15);
+  border-color: rgba(253, 121, 168, 0.25);
+  color: #fab1c8;
+}
+
+.glass-badge--success {
+  background: rgba(0, 184, 148, 0.15);
+  border-color: rgba(0, 184, 148, 0.25);
+  color: #55efc4;
+}
+
+.glass-badge--warning {
+  background: rgba(253, 203, 110, 0.15);
+  border-color: rgba(253, 203, 110, 0.25);
+  color: #fdcb6e;
+}
+
+.glass-badge--danger {
+  background: rgba(214, 48, 49, 0.15);
+  border-color: rgba(214, 48, 49, 0.25);
+  color: #ff7675;
+}
+
+/* ==========================================================================
+   9. Glass Intensity Levels
+   ========================================================================== */
+
+/**
+ * .glass-light  - Subtle glass effect for backgrounds
+ * .glass-medium - Standard glass effect (default)
+ * .glass-heavy  - Strong glass effect for emphasis
+ */
+
+.glass-light {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur-light));
+  backdrop-filter: blur(var(--glass-blur-light));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 12px);
+}
+
+.glass-medium {
+  background: var(--glass-bg-medium);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--glass-shadow);
+}
+
+.glass-heavy {
+  background: var(--glass-bg-heavy);
+  -webkit-backdrop-filter: blur(var(--glass-blur-heavy)) saturate(200%);
+  backdrop-filter: blur(var(--glass-blur-heavy)) saturate(200%);
+  border: 1px solid var(--glass-border-strong);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+/* ==========================================================================
+   10. Fallbacks for Browsers Without backdrop-filter Support
+   ========================================================================== */
+
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+
+  .glass-card {
+    background: rgba(18, 18, 26, 0.92);
+  }
+
+  .glass-card:hover {
+    background: rgba(18, 18, 26, 0.95);
+  }
+
+  .glass-nav {
+    background: rgba(18, 18, 26, 0.95);
+  }
+
+  .glass-nav--scrolled {
+    background: rgba(10, 10, 15, 0.98);
+  }
+
+  .glass-sidebar {
+    background: rgba(18, 18, 26, 0.92);
+  }
+
+  .glass-modal {
+    background: rgba(18, 18, 26, 0.96);
+  }
+
+  .glass-modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+  }
+
+  .glass-hero__overlay {
+    background: linear-gradient(
+      135deg,
+      rgba(108, 92, 231, 0.25) 0%,
+      rgba(0, 206, 201, 0.18) 50%,
+      rgba(253, 121, 168, 0.18) 100%
+    );
+  }
+
+  .glass-input,
+  .glass-textarea,
+  .glass-select {
+    background: rgba(18, 18, 26, 0.9);
+  }
+
+  .glass-badge {
+    background: rgba(18, 18, 26, 0.85);
+  }
+
+  .glass-light {
+    background: rgba(18, 18, 26, 0.85);
+  }
+
+  .glass-medium {
+    background: rgba(18, 18, 26, 0.92);
+  }
+
+  .glass-heavy {
+    background: rgba(18, 18, 26, 0.97);
+  }
+
+  /* Light theme fallbacks */
+  [data-theme="light"] .glass-card {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  [data-theme="light"] .glass-nav {
+    background: rgba(255, 255, 255, 0.95);
+  }
+
+  [data-theme="light"] .glass-sidebar {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  [data-theme="light"] .glass-modal {
+    background: rgba(255, 255, 255, 0.96);
+  }
+
+  [data-theme="light"] .glass-input,
+  [data-theme="light"] .glass-textarea,
+  [data-theme="light"] .glass-select {
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  [data-theme="light"] .glass-badge {
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  [data-theme="light"] .glass-light {
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  [data-theme="light"] .glass-medium {
+    background: rgba(255, 255, 255, 0.92);
+  }
+
+  [data-theme="light"] .glass-heavy {
+    background: rgba(255, 255, 255, 0.97);
+  }
+}
+
+/* ==========================================================================
+   Glass Utility: Noise Texture Overlay
+   Adds a subtle noise texture on top of glass surfaces for realism.
+   Apply .glass-noise as an additional class.
+   ========================================================================== */
+
+.glass-noise::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass-noise {
+  position: relative;
+}
+
+.glass-noise > * {
+  position: relative;
+  z-index: 1;
+}
