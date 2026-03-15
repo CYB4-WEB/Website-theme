@@ -169,7 +169,7 @@ class Starter_Admin_Settings {
 				register_setting( self::OPTION_GROUP, $key, array(
 					'type'              => $args['type'] ?? 'string',
 					'sanitize_callback' => function( $new_value ) use ( $option_key, $sanitize_cb ) {
-						$new_value = call_user_func( $sanitize_cb, $new_value );
+						$new_value = call_user_func( $sanitize_cb, $new_value ?? '' );
 						if ( '' === $new_value ) {
 							/* Blank submitted — preserve existing secret */
 							return get_option( $option_key, '' );
@@ -181,7 +181,9 @@ class Starter_Admin_Settings {
 			} else {
 				register_setting( self::OPTION_GROUP, $key, array(
 					'type'              => $args['type'] ?? 'string',
-					'sanitize_callback' => $sanitize_cb,
+					'sanitize_callback' => function( $value ) use ( $sanitize_cb ) {
+						return call_user_func( $sanitize_cb, $value ?? '' );
+					},
 					'default'           => $args['default'] ?? '',
 				) );
 			}
@@ -313,10 +315,13 @@ class Starter_Admin_Settings {
 						<?php foreach ( $recent_chapters as $ch ) : ?>
 						<tr>
 							<td>
-								<?php if ( $ch->manga_post_id ) : ?>
-									<a href="<?php echo esc_url( get_edit_post_link( $ch->manga_post_id ) ); ?>">
+								<?php $edit_link = $ch->manga_post_id ? get_edit_post_link( $ch->manga_post_id ) : null; ?>
+								<?php if ( $edit_link ) : ?>
+									<a href="<?php echo esc_url( $edit_link ); ?>">
 										<?php echo esc_html( $ch->manga_title ?: __( '(no title)', 'starter-theme' ) ); ?>
 									</a>
+								<?php elseif ( $ch->manga_title ) : ?>
+									<?php echo esc_html( $ch->manga_title ); ?>
 								<?php else : ?>
 									<?php echo esc_html( __( 'Unknown', 'starter-theme' ) ); ?>
 								<?php endif; ?>
