@@ -1,53 +1,43 @@
 /**
  * Project Alpha - Dark Mode / Theme Styles
  *
- * Multi-theme support: Light, Dark, Sepia, and High Contrast.
+ * Multi-theme support: Light, Dark, Sepia, High Contrast.
  * Extends the base CSS custom properties defined in main.css.
  *
  * Table of Contents:
- * 1. Theme Transitions
+ * 1. Theme Transition Base
  * 2. Light Theme
  * 3. Dark Theme
- * 4. Sepia Theme
- * 5. High Contrast Theme
- * 6. Scrollbar Styles
- * 7. Form Elements
+ * 4. Sepia Theme (Novel Reading)
+ * 5. High Contrast (Accessibility)
+ * 6. Theme-Specific Scrollbars
+ * 7. Form Elements Per Theme
  * 8. Images & Media
  * 9. Selection Colors
- * 10. Code Blocks
+ * 10. Code Blocks & Pre Elements
  */
 
 /* ==========================================================================
-   1. Theme Transitions
+   1. Theme Transition Base
    ========================================================================== */
 
-/**
- * Smooth color transitions when switching between themes.
- * Applied broadly but limited to color-related properties for performance.
- */
-body,
-.site-header,
-.site-footer,
-.sidebar,
-.card,
-.glass-card,
-.manga-card,
-.btn,
-input,
-select,
-textarea,
-.modal,
-.dropdown-menu,
-.breadcrumb,
-.badge,
-.chapter-list-item,
-.comment,
-.widget,
-pre,
-code {
-  transition: color 0.3s ease,
-              background-color 0.3s ease,
-              border-color 0.3s ease;
+*,
+*::before,
+*::after {
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Opt out of transitions for elements where it causes layout issues */
+.no-theme-transition,
+.no-theme-transition *,
+.reader-image,
+video,
+canvas,
+iframe {
+  transition: none !important;
 }
 
 /* ==========================================================================
@@ -60,6 +50,7 @@ code {
   --bg-tertiary: #eef0f5;
   --bg-card: #ffffff;
   --bg-card-hover: #f8f9fc;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
 
   --text-primary: #1a1a2e;
   --text-secondary: #4a4a68;
@@ -71,21 +62,25 @@ code {
 
   --scrollbar-track: #f0f0f5;
   --scrollbar-thumb: #c0c0d0;
+  --scrollbar-thumb-hover: #a0a0b8;
 
   --input-bg: #ffffff;
   --input-border: #d0d0dd;
-
-  --selection-bg: rgba(108, 92, 231, 0.25);
-  --selection-color: #1a1a2e;
+  --input-focus-border: var(--color-primary);
+  --input-placeholder: #a0a0b8;
 
   --code-bg: #f0f0f5;
-  --code-border: #e0e0e8;
   --code-color: #e84393;
-  --pre-bg: #1e1e2e;
-  --pre-color: #e8e8f0;
+  --code-border: #e0e0e8;
 
-  --shadow-ambient: rgba(0, 0, 0, 0.06);
-  --img-brightness: 1;
+  --selection-bg: rgba(108, 92, 231, 0.2);
+  --selection-color: #1a1a2e;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+  color-scheme: light;
 }
 
 /* ==========================================================================
@@ -98,6 +93,7 @@ code {
   --bg-tertiary: #1a1a28;
   --bg-card: rgba(255, 255, 255, 0.05);
   --bg-card-hover: rgba(255, 255, 255, 0.08);
+  --bg-overlay: rgba(0, 0, 0, 0.7);
 
   --text-primary: #e0e0e0;
   --text-secondary: #a0a0b8;
@@ -109,29 +105,25 @@ code {
 
   --scrollbar-track: #0a0a0f;
   --scrollbar-thumb: #2a2a3a;
+  --scrollbar-thumb-hover: #3a3a4e;
 
   --input-bg: rgba(255, 255, 255, 0.05);
   --input-border: rgba(255, 255, 255, 0.12);
-
-  --selection-bg: rgba(108, 92, 231, 0.45);
-  --selection-color: #ffffff;
+  --input-focus-border: var(--color-primary);
+  --input-placeholder: #5a5a70;
 
   --code-bg: rgba(255, 255, 255, 0.06);
-  --code-border: rgba(255, 255, 255, 0.1);
   --code-color: #fd79a8;
-  --pre-bg: #0d0d14;
-  --pre-color: #c8c8d8;
+  --code-border: rgba(255, 255, 255, 0.08);
 
-  --shadow-ambient: rgba(0, 0, 0, 0.4);
-  --img-brightness: 0.9;
+  --selection-bg: rgba(108, 92, 231, 0.4);
+  --selection-color: #ffffff;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
 
   color-scheme: dark;
-}
-
-/* Dark theme body */
-[data-theme="dark"] body {
-  background-color: #0a0a0f;
-  color: #e0e0e0;
 }
 
 /* ==========================================================================
@@ -140,62 +132,61 @@ code {
 
 [data-theme="sepia"] {
   --bg-primary: #f4ecd8;
-  --bg-secondary: #faf6ee;
+  --bg-secondary: #faf6eb;
   --bg-tertiary: #ede5d0;
-  --bg-card: #faf6ee;
-  --bg-card-hover: #f0e8d4;
+  --bg-card: #faf6eb;
+  --bg-card-hover: #f5f0e0;
+  --bg-overlay: rgba(91, 70, 54, 0.4);
 
   --text-primary: #5b4636;
-  --text-secondary: #7a6652;
-  --text-tertiary: #9a8a76;
-  --text-inverse: #faf6ee;
+  --text-secondary: #7a6352;
+  --text-tertiary: #a08a76;
+  --text-inverse: #faf6eb;
 
-  --border-color: #d4c8a8;
-  --border-color-light: #e4dcc4;
+  --border-color: #d4c9b4;
+  --border-color-light: #e6dece;
 
   --scrollbar-track: #ede5d0;
-  --scrollbar-thumb: #c4b898;
+  --scrollbar-thumb: #c4b8a0;
+  --scrollbar-thumb-hover: #a89a82;
 
-  --input-bg: #faf6ee;
-  --input-border: #d4c8a8;
-
-  --selection-bg: rgba(139, 109, 63, 0.3);
-  --selection-color: #5b4636;
+  --input-bg: #faf6eb;
+  --input-border: #d4c9b4;
+  --input-focus-border: #8b6f47;
+  --input-placeholder: #a08a76;
 
   --code-bg: #ede5d0;
-  --code-border: #d4c8a8;
   --code-color: #8b4513;
-  --pre-bg: #3e2f20;
-  --pre-color: #e8dcc8;
+  --code-border: #d4c9b4;
 
-  --shadow-ambient: rgba(90, 70, 40, 0.1);
-  --img-brightness: 0.95;
+  --selection-bg: rgba(139, 111, 71, 0.3);
+  --selection-color: #5b4636;
 
-  /* Override primary color to match warm tone */
-  --color-primary: #8b6d3f;
-  --color-primary-light: #a68b5b;
-  --color-primary-dark: #6e5530;
-}
+  --shadow-sm: 0 1px 2px rgba(91, 70, 54, 0.08);
+  --shadow-md: 0 4px 6px rgba(91, 70, 54, 0.1);
+  --shadow-lg: 0 10px 25px rgba(91, 70, 54, 0.15);
 
-[data-theme="sepia"] body {
-  background-color: #f4ecd8;
-  color: #5b4636;
+  --color-primary: #8b6f47;
+  --color-primary-light: #a48862;
+
+  color-scheme: light;
 }
 
 /* ==========================================================================
-   5. High Contrast Theme (Accessibility)
+   5. High Contrast (Accessibility)
    ========================================================================== */
 
 [data-theme="high-contrast"] {
   --bg-primary: #000000;
   --bg-secondary: #0a0a0a;
-  --bg-tertiary: #141414;
+  --bg-tertiary: #1a1a1a;
   --bg-card: #0a0a0a;
   --bg-card-hover: #1a1a1a;
+  --bg-overlay: rgba(0, 0, 0, 0.85);
 
   --text-primary: #ffffff;
-  --text-secondary: #f0f0f0;
-  --text-tertiary: #d0d0d0;
+  --text-secondary: #e0e0e0;
+  --text-tertiary: #c0c0c0;
   --text-inverse: #000000;
 
   --border-color: #ffffff;
@@ -203,221 +194,228 @@ code {
 
   --scrollbar-track: #000000;
   --scrollbar-thumb: #ffffff;
+  --scrollbar-thumb-hover: #e0e0e0;
 
-  --input-bg: #0a0a0a;
+  --input-bg: #000000;
   --input-border: #ffffff;
+  --input-focus-border: #ffff00;
+  --input-placeholder: #a0a0a0;
 
-  --selection-bg: #ffffff;
+  --code-bg: #0a0a0a;
+  --code-color: #00ff00;
+  --code-border: #ffffff;
+
+  --selection-bg: #ffff00;
   --selection-color: #000000;
 
-  --code-bg: #1a1a1a;
-  --code-border: #ffffff;
-  --code-color: #ffff00;
-  --pre-bg: #0a0a0a;
-  --pre-color: #ffffff;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
 
-  --shadow-ambient: none;
-  --img-brightness: 1;
-
-  /* High contrast overrides for primary colors */
-  --color-primary: #8080ff;
-  --color-primary-light: #a0a0ff;
-  --color-primary-dark: #6060ff;
-  --color-accent: #ff80a0;
+  --color-primary: #00ccff;
+  --color-primary-light: #66e0ff;
+  --color-secondary: #ff66cc;
+  --color-accent: #ffff00;
 
   color-scheme: dark;
 }
 
-[data-theme="high-contrast"] body {
-  background-color: #000000;
-  color: #ffffff;
+/* High contrast link styling */
+[data-theme="high-contrast"] a {
+  color: #00ccff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
-/* Stronger focus outlines for high contrast */
-[data-theme="high-contrast"] :focus-visible {
-  outline: 3px solid #ffffff;
+[data-theme="high-contrast"] a:hover,
+[data-theme="high-contrast"] a:focus {
+  color: #ffff00;
+  outline: 2px solid #ffff00;
   outline-offset: 2px;
 }
 
-[data-theme="high-contrast"] a {
-  color: #80b0ff;
-  text-decoration: underline;
+/* High contrast focus indicators */
+[data-theme="high-contrast"] :focus-visible {
+  outline: 3px solid #ffff00;
+  outline-offset: 2px;
 }
 
-[data-theme="high-contrast"] a:hover {
-  color: #ffff00;
-}
-
-[data-theme="high-contrast"] .btn {
+/* High contrast buttons */
+[data-theme="high-contrast"] .btn,
+[data-theme="high-contrast"] button {
   border: 2px solid #ffffff;
 }
 
+[data-theme="high-contrast"] .btn-primary {
+  background: #00ccff;
+  color: #000000;
+  border-color: #00ccff;
+}
+
 /* ==========================================================================
-   6. Scrollbar Styles
+   6. Theme-Specific Scrollbars
    ========================================================================== */
 
-/* Dark mode scrollbar */
-[data-theme="dark"] ::-webkit-scrollbar {
+/* Webkit scrollbar */
+::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-[data-theme="dark"] ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track, #f0f0f5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #c0c0d0);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #a0a0b8);
+}
+
+/* Dark theme: thin scrollbar for Firefox */
+[data-theme="dark"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
+  background: #2a2a3a;
 }
 
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a4e;
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #0a0a0f;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
+  background: #0a0a0f;
 }
 
 /* Sepia scrollbar */
-[data-theme="sepia"] ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-[data-theme="sepia"] ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-[data-theme="sepia"] ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 4px;
-}
-
-[data-theme="sepia"] ::-webkit-scrollbar-thumb:hover {
-  background: #b0a488;
+[data-theme="sepia"] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 /* High contrast scrollbar */
-[data-theme="high-contrast"] ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border: 1px solid #000000;
 }
 
 [data-theme="high-contrast"] ::-webkit-scrollbar-track {
   background: #000000;
-  border: 1px solid #ffffff;
-}
-
-[data-theme="high-contrast"] ::-webkit-scrollbar-thumb {
-  background: #ffffff;
-  border-radius: 0;
-}
-
-/* Firefox scrollbar */
-[data-theme="dark"] * {
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-width: thin;
-}
-
-[data-theme="sepia"] * {
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-  scrollbar-width: thin;
-}
-
-[data-theme="high-contrast"] * {
-  scrollbar-color: #ffffff #000000;
-  scrollbar-width: auto;
 }
 
 /* ==========================================================================
-   7. Form Elements
+   7. Form Elements Per Theme
    ========================================================================== */
 
-[data-theme="dark"] input,
-[data-theme="dark"] select,
-[data-theme="dark"] textarea {
+/* Base form element theming (uses CSS vars from active theme) */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="number"],
+input[type="tel"],
+input[type="date"],
+textarea,
+select {
   background-color: var(--input-bg);
   border-color: var(--input-border);
   color: var(--text-primary);
 }
 
-[data-theme="dark"] input::placeholder,
-[data-theme="dark"] textarea::placeholder {
-  color: var(--text-tertiary);
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder, var(--text-tertiary));
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--input-focus-border, var(--color-primary));
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+}
+
+/* Dark form overrides */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e0e0e0;
 }
 
 [data-theme="dark"] input:focus,
-[data-theme="dark"] select:focus,
-[data-theme="dark"] textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.2);
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus {
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.25);
 }
 
 [data-theme="dark"] select option {
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
+  background-color: #1a1a28;
+  color: #e0e0e0;
+}
+
+/* Dark checkboxes and radios */
+[data-theme="dark"] input[type="checkbox"],
+[data-theme="dark"] input[type="radio"] {
+  accent-color: var(--color-primary);
 }
 
 /* Sepia form elements */
-[data-theme="sepia"] input,
-[data-theme="sepia"] select,
-[data-theme="sepia"] textarea {
-  background-color: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--text-primary);
-}
-
-[data-theme="sepia"] input::placeholder,
-[data-theme="sepia"] textarea::placeholder {
-  color: var(--text-tertiary);
-}
-
 [data-theme="sepia"] input:focus,
-[data-theme="sepia"] select:focus,
-[data-theme="sepia"] textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(139, 109, 63, 0.2);
+[data-theme="sepia"] textarea:focus,
+[data-theme="sepia"] select:focus {
+  box-shadow: 0 0 0 3px rgba(139, 111, 71, 0.2);
+}
+
+[data-theme="sepia"] select option {
+  background-color: #faf6eb;
+  color: #5b4636;
 }
 
 /* High contrast form elements */
 [data-theme="high-contrast"] input,
-[data-theme="high-contrast"] select,
-[data-theme="high-contrast"] textarea {
-  background-color: var(--input-bg);
-  border: 2px solid #ffffff;
-  color: #ffffff;
-}
-
-[data-theme="high-contrast"] input::placeholder,
-[data-theme="high-contrast"] textarea::placeholder {
-  color: #a0a0a0;
+[data-theme="high-contrast"] textarea,
+[data-theme="high-contrast"] select {
+  border-width: 2px;
 }
 
 /* ==========================================================================
    8. Images & Media
    ========================================================================== */
 
+/* Slightly dim images in dark mode to reduce eye strain */
 [data-theme="dark"] img {
   filter: brightness(0.9);
 }
 
-/* Don't dim user avatars or logos */
-[data-theme="dark"] img.avatar,
-[data-theme="dark"] img.site-logo,
-[data-theme="dark"] .manga-card__cover img {
+[data-theme="dark"] img:hover {
   filter: brightness(1);
 }
 
+/* Exempt specific images from dimming */
+[data-theme="dark"] img.no-dim,
+[data-theme="dark"] .site-logo img,
+[data-theme="dark"] .avatar img {
+  filter: none;
+}
+
+/* Sepia tint for images in sepia mode */
 [data-theme="sepia"] img {
-  filter: brightness(0.95) sepia(0.1);
+  filter: sepia(0.1) brightness(0.98);
 }
 
-[data-theme="sepia"] img.avatar,
-[data-theme="sepia"] img.site-logo {
-  filter: brightness(1);
+[data-theme="sepia"] img:hover {
+  filter: none;
 }
 
+/* High contrast images */
 [data-theme="high-contrast"] img {
   filter: contrast(1.1);
 }
@@ -426,104 +424,110 @@ code {
    9. Selection Colors
    ========================================================================== */
 
-[data-theme="light"] ::selection {
-  background: var(--selection-bg);
-  color: var(--selection-color);
+::selection {
+  background: var(--selection-bg, rgba(108, 92, 231, 0.2));
+  color: var(--selection-color, inherit);
+}
+
+::-moz-selection {
+  background: var(--selection-bg, rgba(108, 92, 231, 0.2));
+  color: var(--selection-color, inherit);
 }
 
 [data-theme="dark"] ::selection {
-  background: var(--selection-bg);
-  color: var(--selection-color);
+  background: rgba(108, 92, 231, 0.4);
+  color: #ffffff;
 }
 
 [data-theme="sepia"] ::selection {
-  background: var(--selection-bg);
-  color: var(--selection-color);
+  background: rgba(139, 111, 71, 0.3);
+  color: #5b4636;
 }
 
 [data-theme="high-contrast"] ::selection {
-  background: #ffffff;
+  background: #ffff00;
   color: #000000;
 }
 
 /* ==========================================================================
-   10. Code Blocks
+   10. Code Blocks & Pre Elements
    ========================================================================== */
 
-[data-theme="dark"] code {
-  background: var(--code-bg);
-  border: 1px solid var(--code-border);
+code,
+kbd,
+samp {
+  background-color: var(--code-bg);
   color: var(--code-color);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-sm);
   padding: 0.15em 0.4em;
-  border-radius: var(--radius-sm, 4px);
+  font-family: var(--font-family-mono);
   font-size: 0.875em;
 }
 
-[data-theme="dark"] pre {
-  background: var(--pre-bg);
-  color: var(--pre-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md, 8px);
-  padding: var(--space-lg, 1.5rem);
+pre {
+  background-color: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
   overflow-x: auto;
+  line-height: var(--line-height-relaxed);
 }
 
-[data-theme="dark"] pre code {
-  background: transparent;
+pre code {
+  background: none;
   border: none;
   padding: 0;
-  color: inherit;
   font-size: inherit;
 }
 
-/* Sepia code */
-[data-theme="sepia"] code {
-  background: var(--code-bg);
-  border: 1px solid var(--code-border);
-  color: var(--code-color);
-  padding: 0.15em 0.4em;
-  border-radius: var(--radius-sm, 4px);
-  font-size: 0.875em;
+/* Dark code blocks */
+[data-theme="dark"] pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
+[data-theme="dark"] code {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #fd79a8;
+}
+
+/* Sepia code blocks */
 [data-theme="sepia"] pre {
-  background: var(--pre-bg);
-  color: var(--pre-color);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md, 8px);
-  padding: var(--space-lg, 1.5rem);
-  overflow-x: auto;
+  background-color: #ede5d0;
+  border-color: #d4c9b4;
 }
 
-[data-theme="sepia"] pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: inherit;
+[data-theme="sepia"] code {
+  background-color: #ede5d0;
+  border-color: #d4c9b4;
+  color: #8b4513;
 }
 
-/* High contrast code */
-[data-theme="high-contrast"] code {
-  background: var(--code-bg);
-  border: 2px solid #ffffff;
-  color: var(--code-color);
-  padding: 0.15em 0.4em;
-  border-radius: 0;
-  font-size: 0.875em;
-}
-
+/* High contrast code blocks */
 [data-theme="high-contrast"] pre {
-  background: var(--pre-bg);
-  color: var(--pre-color);
+  background-color: #0a0a0a;
   border: 2px solid #ffffff;
-  border-radius: 0;
-  padding: var(--space-lg, 1.5rem);
-  overflow-x: auto;
 }
 
-[data-theme="high-contrast"] pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: inherit;
+[data-theme="high-contrast"] code {
+  background-color: #0a0a0a;
+  border: 1px solid #ffffff;
+  color: #00ff00;
+}
+
+/* kbd element styling per theme */
+kbd {
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-bottom-width: 2px;
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.4em;
+  font-size: 0.85em;
+}
+
+[data-theme="dark"] kbd {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
 }

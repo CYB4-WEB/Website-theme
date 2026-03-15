@@ -1,312 +1,272 @@
 (function() {
-  'use strict';
+    'use strict';
 
-  const config = window.starterData || {};
-  const ajaxUrl = config.ajaxUrl || '/wp-admin/admin-ajax.php';
-  const nonce = config.nonce || '';
+    const data = window.starterData || {};
+    const ajaxUrl = data.ajaxUrl || '';
+    const nonce = data.nonce || '';
 
-  let toastTimer = null;
+    let toastTimeout = null;
 
-  /**
-   * Show a toast notification
-   */
-  function showToast(message, type = 'success') {
-    let container = document.querySelector('.starter-toast-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.className = 'starter-toast-container';
-      document.body.appendChild(container);
-    }
+    /**
+     * Show toast notification
+     */
+    function showToast(message, type) {
+        type = type || 'success';
+        let toast = document.querySelector('.starter-toast');
 
-    const toast = document.createElement('div');
-    toast.className = `starter-toast starter-toast--${type}`;
-    toast.textContent = message;
-    container.appendChild(toast);
-
-    // Trigger enter animation
-    requestAnimationFrame(() => {
-      toast.classList.add('starter-toast--visible');
-    });
-
-    // Auto dismiss
-    const timer = setTimeout(() => {
-      toast.classList.remove('starter-toast--visible');
-      toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-      // Fallback removal if transitionend doesn't fire
-      setTimeout(() => {
-        if (toast.parentNode) toast.remove();
-      }, 500);
-    }, 3000);
-  }
-
-  /**
-   * Animate the bookmark button (scale + color change)
-   */
-  function animateButton(button, isAdding) {
-    button.classList.add('bookmark-btn--animating');
-    if (isAdding) {
-      button.classList.add('bookmark-btn--active');
-    } else {
-      button.classList.remove('bookmark-btn--active');
-    }
-
-    // Remove animation class after animation completes
-    setTimeout(() => {
-      button.classList.remove('bookmark-btn--animating');
-    }, 400);
-  }
-
-  /**
-   * Update the bookmark count display near a button
-   */
-  function updateBookmarkCount(button, delta) {
-    const countEl = button.querySelector('.bookmark-count')
-      || button.closest('.bookmark-wrapper')?.querySelector('.bookmark-count');
-
-    if (countEl) {
-      const current = parseInt(countEl.textContent, 10) || 0;
-      const newCount = Math.max(0, current + delta);
-      countEl.textContent = newCount;
-    }
-  }
-
-  /**
-   * Toggle bookmark via AJAX
-   */
-  function toggleBookmark(button) {
-    const mangaId = button.dataset.mangaId;
-    if (!mangaId) {
-      console.error('Bookmark button missing data-manga-id');
-      return;
-    }
-
-    const isCurrentlyBookmarked = button.classList.contains('bookmark-btn--active');
-    const action = isCurrentlyBookmarked ? 'starter_remove_bookmark' : 'starter_add_bookmark';
-
-    // Optimistic UI update
-    animateButton(button, !isCurrentlyBookmarked);
-    button.disabled = true;
-
-    const formData = new FormData();
-    formData.append('action', action);
-    formData.append('nonce', nonce);
-    formData.append('manga_id', mangaId);
-
-    fetch(ajaxUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin'
-    })
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        button.disabled = false;
-
-        if (data.success) {
-          if (isCurrentlyBookmarked) {
-            updateBookmarkCount(button, -1);
-            showToast('Bookmark removed', 'info');
-          } else {
-            updateBookmarkCount(button, 1);
-            showToast('Bookmark added!', 'success');
-          }
-        } else {
-          // Revert optimistic update on failure
-          animateButton(button, isCurrentlyBookmarked);
-          showToast(data.data?.message || 'Failed to update bookmark', 'error');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'starter-toast';
+            document.body.appendChild(toast);
         }
-      })
-      .catch(error => {
-        button.disabled = false;
-        // Revert optimistic update
-        animateButton(button, isCurrentlyBookmarked);
-        console.error('Bookmark toggle error:', error);
-        showToast('Something went wrong. Please try again.', 'error');
-      });
-  }
 
-  /**
-   * Initialize bookmark toggle buttons on manga pages
-   */
-  function initBookmarkButtons() {
-    document.addEventListener('click', (e) => {
-      const button = e.target.closest('.bookmark-btn');
-      if (button) {
-        e.preventDefault();
-        toggleBookmark(button);
-      }
-    });
-  }
+        clearTimeout(toastTimeout);
 
-  /**
-   * Bookmarks page: load user bookmarks via AJAX
-   */
-  function initBookmarksPage() {
-    const container = document.querySelector('.bookmarks-list');
-    if (!container) return;
+        toast.textContent = message;
+        toast.className = 'starter-toast toast-' + type + ' toast-visible';
 
-    const sortSelect = document.querySelector('.bookmarks-sort');
-    let currentSort = sortSelect ? sortSelect.value : 'latest';
+        toastTimeout = setTimeout(function() {
+            toast.classList.remove('toast-visible');
+        }, 3000);
+    }
 
-    loadBookmarks(container, currentSort);
+    /**
+     * Toggle bookmark button on manga page
+     */
+    function initBookmarkToggle() {
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.bookmark-toggle');
+            if (!btn) return;
 
-    if (sortSelect) {
-      sortSelect.addEventListener('change', () => {
-        currentSort = sortSelect.value;
+            e.preventDefault();
+
+            if (btn.classList.contains('loading')) return;
+
+            const mangaId = btn.getAttribute('data-manga-id');
+            if (!mangaId) return;
+
+            const isBookmarked = btn.classList.contains('bookmarked');
+            const action = isBookmarked ? 'starter_remove_bookmark' : 'starter_add_bookmark';
+
+            btn.classList.add('loading');
+
+            const formData = new FormData();
+            formData.append('action', action);
+            formData.append('nonce', nonce);
+            formData.append('manga_id', mangaId);
+
+            fetch(ajaxUrl, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(function(response) {
+                if (!response.ok) throw new Error('Bookmark request failed');
+                return response.json();
+            })
+            .then(function(result) {
+                btn.classList.remove('loading');
+
+                if (!result.success) {
+                    showToast(result.data || 'Failed to update bookmark', 'error');
+                    return;
+                }
+
+                btn.classList.toggle('bookmarked');
+                animateBookmarkIcon(btn);
+
+                const countEl = btn.querySelector('.bookmark-count');
+                if (countEl && typeof result.data.count !== 'undefined') {
+                    countEl.textContent = result.data.count;
+                }
+
+                const newState = btn.classList.contains('bookmarked');
+                showToast(
+                    newState ? 'Added to bookmarks' : 'Removed from bookmarks',
+                    'success'
+                );
+            })
+            .catch(function(error) {
+                console.error('Bookmark error:', error);
+                btn.classList.remove('loading');
+                showToast('Failed to update bookmark. Please try again.', 'error');
+            });
+        });
+    }
+
+    /**
+     * Animate bookmark icon (scale + color)
+     */
+    function animateBookmarkIcon(btn) {
+        const icon = btn.querySelector('.bookmark-icon') || btn;
+        icon.classList.add('bookmark-animate');
+
+        icon.addEventListener('animationend', function handler() {
+            icon.classList.remove('bookmark-animate');
+            icon.removeEventListener('animationend', handler);
+        });
+    }
+
+    /**
+     * Bookmarks listing page
+     */
+    function initBookmarksPage() {
+        const container = document.querySelector('.bookmarks-container');
+        if (!container) return;
+
+        const sortSelect = container.querySelector('.bookmarks-sort');
+        let currentSort = 'newest';
+
         loadBookmarks(container, currentSort);
-      });
+
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+                currentSort = this.value;
+                loadBookmarks(container, currentSort);
+            });
+        }
+
+        container.addEventListener('click', function(e) {
+            const removeBtn = e.target.closest('.bookmark-remove');
+            if (!removeBtn) return;
+
+            e.preventDefault();
+            const mangaId = removeBtn.getAttribute('data-manga-id');
+            if (!mangaId) return;
+
+            removeBookmark(mangaId, removeBtn, container, currentSort);
+        });
     }
 
-    // Remove individual bookmark from bookmarks page
-    container.addEventListener('click', (e) => {
-      const removeBtn = e.target.closest('.bookmark-remove-btn');
-      if (!removeBtn) return;
+    function loadBookmarks(container, sort) {
+        const listEl = container.querySelector('.bookmarks-list');
+        if (!listEl) return;
 
-      e.preventDefault();
-      const mangaId = removeBtn.dataset.mangaId;
-      if (!mangaId) return;
+        listEl.innerHTML = '<div class="bookmarks-loading"><span class="spinner"></span> Loading bookmarks...</div>';
 
-      removeBookmarkFromPage(removeBtn, mangaId, container, currentSort);
-    });
-  }
+        const params = new URLSearchParams({
+            action: 'starter_get_bookmarks',
+            nonce: nonce,
+            sort: sort
+        });
 
-  /**
-   * Load bookmarks list via AJAX
-   */
-  function loadBookmarks(container, sort) {
-    container.innerHTML = '<div class="bookmarks-loading"><span class="spinner"></span> Loading bookmarks...</div>';
+        fetch(ajaxUrl + '?' + params.toString(), {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            if (!response.ok) throw new Error('Failed to load bookmarks');
+            return response.json();
+        })
+        .then(function(result) {
+            if (!result.success || !result.data || result.data.length === 0) {
+                listEl.innerHTML = '<div class="bookmarks-empty">No bookmarks yet. Start adding manga to your bookmarks!</div>';
+                return;
+            }
 
-    const formData = new FormData();
-    formData.append('action', 'starter_get_bookmarks');
-    formData.append('nonce', nonce);
-    formData.append('sort', sort);
+            let html = '';
+            result.data.forEach(function(item) {
+                html += '<div class="bookmark-card" data-manga-id="' + escapeAttr(item.id) + '">'
+                    + '<a href="' + escapeAttr(item.url) + '" class="bookmark-card-link">'
+                    + '<div class="bookmark-thumb">'
+                    + (item.thumbnail ? '<img src="' + escapeAttr(item.thumbnail) + '" alt="' + escapeAttr(item.title) + '" loading="lazy">' : '')
+                    + '</div>'
+                    + '<div class="bookmark-info">'
+                    + '<h3 class="bookmark-title">' + escapeHtml(item.title) + '</h3>'
+                    + (item.latestChapter ? '<span class="bookmark-chapter">' + escapeHtml(item.latestChapter) + '</span>' : '')
+                    + '</div>'
+                    + '</a>'
+                    + (item.continueUrl
+                        ? '<a href="' + escapeAttr(item.continueUrl) + '" class="bookmark-continue" title="Continue reading">Continue Reading</a>'
+                        : '')
+                    + '<button class="bookmark-remove" data-manga-id="' + escapeAttr(item.id) + '" title="Remove bookmark">&times;</button>'
+                    + '</div>';
+            });
 
-    fetch(ajaxUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin'
-    })
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        if (data.success && data.data && data.data.bookmarks && data.data.bookmarks.length > 0) {
-          container.innerHTML = data.data.bookmarks.map(renderBookmarkItem).join('');
-        } else {
-          container.innerHTML = '<div class="bookmarks-empty"><p>No bookmarks yet. Start reading and bookmark your favorites!</p></div>';
-        }
-      })
-      .catch(error => {
-        console.error('Load bookmarks error:', error);
-        container.innerHTML = '<div class="bookmarks-error">Failed to load bookmarks. Please refresh the page.</div>';
-      });
-  }
-
-  /**
-   * Render a single bookmark item
-   */
-  function renderBookmarkItem(item) {
-    const thumbnail = item.thumbnail
-      ? `<img src="${escapeHtml(item.thumbnail)}" alt="${escapeHtml(item.title)}" class="bookmark-item__thumb" loading="lazy">`
-      : '<div class="bookmark-item__thumb bookmark-item__thumb--placeholder"></div>';
-
-    const continueReading = item.lastChapterUrl
-      ? `<a href="${escapeHtml(item.lastChapterUrl)}" class="bookmark-item__continue">Continue Reading - ${escapeHtml(item.lastChapterTitle || 'Last Chapter')}</a>`
-      : '';
-
-    return `
-      <div class="bookmark-item" data-manga-id="${escapeHtml(String(item.id))}">
-        <div class="bookmark-item__image">
-          ${thumbnail}
-        </div>
-        <div class="bookmark-item__info">
-          <h3 class="bookmark-item__title">
-            <a href="${escapeHtml(item.url)}">${escapeHtml(item.title)}</a>
-          </h3>
-          ${continueReading}
-        </div>
-        <button class="bookmark-remove-btn" data-manga-id="${escapeHtml(String(item.id))}" aria-label="Remove bookmark">
-          <span class="bookmark-remove-icon">&times;</span>
-        </button>
-      </div>
-    `;
-  }
-
-  /**
-   * Remove a bookmark from the bookmarks page
-   */
-  function removeBookmarkFromPage(button, mangaId, container, sort) {
-    const item = button.closest('.bookmark-item');
-    if (item) {
-      item.classList.add('bookmark-item--removing');
+            listEl.innerHTML = html;
+        })
+        .catch(function(error) {
+            console.error('Load bookmarks error:', error);
+            listEl.innerHTML = '<div class="bookmarks-error">Failed to load bookmarks. Please refresh the page.</div>';
+        });
     }
 
-    const formData = new FormData();
-    formData.append('action', 'starter_remove_bookmark');
-    formData.append('nonce', nonce);
-    formData.append('manga_id', mangaId);
+    function removeBookmark(mangaId, btn, container, sort) {
+        btn.disabled = true;
 
-    fetch(ajaxUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'same-origin'
-    })
-      .then(response => {
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        return response.json();
-      })
-      .then(data => {
-        if (data.success) {
-          if (item) {
-            item.addEventListener('transitionend', () => item.remove(), { once: true });
-            item.style.maxHeight = '0';
-            item.style.opacity = '0';
-            // Fallback
-            setTimeout(() => {
-              if (item.parentNode) item.remove();
-              // Check if list is empty
-              if (container.querySelectorAll('.bookmark-item').length === 0) {
-                container.innerHTML = '<div class="bookmarks-empty"><p>No bookmarks yet. Start reading and bookmark your favorites!</p></div>';
-              }
-            }, 400);
-          }
-          showToast('Bookmark removed', 'info');
-        } else {
-          if (item) item.classList.remove('bookmark-item--removing');
-          showToast('Failed to remove bookmark', 'error');
-        }
-      })
-      .catch(error => {
-        if (item) item.classList.remove('bookmark-item--removing');
-        console.error('Remove bookmark error:', error);
-        showToast('Something went wrong. Please try again.', 'error');
-      });
-  }
+        const formData = new FormData();
+        formData.append('action', 'starter_remove_bookmark');
+        formData.append('nonce', nonce);
+        formData.append('manga_id', mangaId);
 
-  /**
-   * Escape HTML to prevent XSS
-   */
-  function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = String(str);
-    return div.innerHTML;
-  }
+        fetch(ajaxUrl, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(function(response) {
+            if (!response.ok) throw new Error('Remove bookmark failed');
+            return response.json();
+        })
+        .then(function(result) {
+            if (result.success) {
+                const card = btn.closest('.bookmark-card');
+                if (card) {
+                    card.style.transition = 'opacity 0.3s, transform 0.3s';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(function() {
+                        card.remove();
+                        const list = container.querySelector('.bookmarks-list');
+                        if (list && !list.querySelector('.bookmark-card')) {
+                            list.innerHTML = '<div class="bookmarks-empty">No bookmarks yet. Start adding manga to your bookmarks!</div>';
+                        }
+                    }, 300);
+                }
+                showToast('Bookmark removed', 'success');
+            } else {
+                btn.disabled = false;
+                showToast(result.data || 'Failed to remove bookmark', 'error');
+            }
+        })
+        .catch(function(error) {
+            console.error('Remove bookmark error:', error);
+            btn.disabled = false;
+            showToast('Failed to remove bookmark. Please try again.', 'error');
+        });
+    }
 
-  /**
-   * Initialize
-   */
-  function init() {
-    initBookmarkButtons();
-    initBookmarksPage();
-  }
+    /**
+     * Utility functions
+     */
+    function escapeHtml(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+    function escapeAttr(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    /**
+     * Initialize on DOM ready
+     */
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        initBookmarkToggle();
+        initBookmarksPage();
+    }
 })();
