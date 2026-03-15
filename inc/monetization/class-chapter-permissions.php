@@ -284,8 +284,13 @@ class Starter_Chapter_Permissions {
 		global $wpdb;
 		$table = $wpdb->prefix . 'starter_chapter_unlocks';
 
-		/* If the unlocks table doesn't exist, fall back to user meta. */
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		/* If the unlocks table doesn't exist, fall back to user meta.
+		 * Use INFORMATION_SCHEMA with a fully prepared query — avoids LIKE injection. */
+		$table_exists = $wpdb->get_var( $wpdb->prepare(
+			'SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = %s',
+			$table
+		) );
+		if ( ! $table_exists ) {
 			$unlocked = get_user_meta( $user_id, '_unlocked_chapters', true );
 			return is_array( $unlocked ) && in_array( (int) $chapter_id, $unlocked, true );
 		}
@@ -309,7 +314,11 @@ class Starter_Chapter_Permissions {
 		global $wpdb;
 		$table = $wpdb->prefix . 'starter_chapter_unlocks';
 
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$table_exists = $wpdb->get_var( $wpdb->prepare(
+			'SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = %s',
+			$table
+		) );
+		if ( ! $table_exists ) {
 			/* Fallback: store in user meta */
 			$unlocked   = get_user_meta( $user_id, '_unlocked_chapters', true );
 			$unlocked   = is_array( $unlocked ) ? $unlocked : array();

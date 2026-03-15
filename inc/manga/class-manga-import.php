@@ -500,7 +500,36 @@ class Starter_Manga_Import {
 		$extract_dir = trailingslashit( $temp_dir ) . 'extract_' . wp_generate_uuid4();
 		wp_mkdir_p( $extract_dir );
 
-		$zip->extractTo( $extract_dir );
+		/* ZIP Slip prevention: manually extract and verify each entry stays within $extract_dir. */
+		$real_extract_dir = realpath( $extract_dir );
+		for ( $i = 0; $i < $zip->numFiles; $i++ ) {
+			$entry_name = $zip->getNameIndex( $i );
+			if ( false === $entry_name ) {
+				continue;
+			}
+			/* Resolve destination and confirm it stays inside $extract_dir. */
+			$dest_path = $real_extract_dir . DIRECTORY_SEPARATOR . $entry_name;
+			$dest_dir  = realpath( dirname( $dest_path ) );
+			if ( false !== $dest_dir && strpos( $dest_dir . DIRECTORY_SEPARATOR, $real_extract_dir . DIRECTORY_SEPARATOR ) !== 0 ) {
+				continue; /* Path traversal attempt — skip. */
+			}
+			if ( substr( $entry_name, -1 ) === '/' ) {
+				wp_mkdir_p( $dest_path );
+				continue;
+			}
+			wp_mkdir_p( dirname( $dest_path ) );
+			$stream = $zip->getStream( $entry_name );
+			if ( $stream ) {
+				// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fopen
+				$fp = fopen( $dest_path, 'wb' );
+				if ( $fp ) {
+					stream_copy_to_stream( $stream, $fp );
+					// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
+					fclose( $fp );
+				}
+				fclose( $stream );
+			}
+		}
 		$zip->close();
 
 		// Clean up the ZIP file.

@@ -259,8 +259,12 @@ class Starter_Sample_Data {
 
 		$table = $wpdb->prefix . 'starter_chapters';
 
-		/* Skip if table doesn't exist yet */
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '{$table}'" ) !== $table ) { // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		/* Skip if table doesn't exist yet — use INFORMATION_SCHEMA for safe parameterized check */
+		$table_exists = $wpdb->get_var( $wpdb->prepare(
+			'SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = %s',
+			$table
+		) );
+		if ( ! $table_exists ) {
 			return;
 		}
 
