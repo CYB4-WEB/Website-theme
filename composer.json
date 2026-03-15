@@ -1,0 +1,20 @@
+{
+    "name": "project-alpha/manga-platform",
+    "description": "Project Alpha — standalone manga/novel/video reading platform",
+    "type": "project",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {},
+    "autoload": {
+        "psr-4": {
+            "Alpha\\": "src/"
+        }
+    },
+    "scripts": {
+        "install-db": "php migrations/install.php"
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}
