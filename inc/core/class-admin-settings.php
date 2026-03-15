@@ -70,6 +70,23 @@ class Starter_Admin_Settings {
 	 * Constructor.
 	 */
 	private function __construct() {
+		// Tabs contain translated strings — defer until after translations are loaded.
+		add_action( 'init',          array( $this, 'init_tabs' ), 0 );
+		add_action( 'admin_menu',    array( $this, 'register_menu' ) );
+		add_action( 'admin_init',                         array( $this, 'register_settings' ) );
+		add_action( 'admin_notices',                      array( $this, 'settings_saved_notice' ) );
+		add_action( 'wp_ajax_starter_test_webhook',       array( $this, 'ajax_test_webhook' ) );
+	}
+
+	/* ──────────────────────────────────────────────────────────────
+	 * Tabs initialisation (deferred to `init` so translations are loaded)
+	 * ─────────────────────────────────────────────────────────── */
+
+	/**
+	 * Populate the tabs array after translations are available.
+	 * Hooked to `init` with priority 0.
+	 */
+	public function init_tabs() {
 		$this->tabs = array(
 			'general'  => __( 'General', 'starter-theme' ),
 			'api'      => __( 'API Keys', 'starter-theme' ),
@@ -80,11 +97,6 @@ class Starter_Admin_Settings {
 			'security' => __( 'Security', 'starter-theme' ),
 			'webhooks' => __( 'Webhooks', 'starter-theme' ),
 		);
-
-		add_action( 'admin_menu',    array( $this, 'register_menu' ) );
-		add_action( 'admin_init',                         array( $this, 'register_settings' ) );
-		add_action( 'admin_notices',                      array( $this, 'settings_saved_notice' ) );
-		add_action( 'wp_ajax_starter_test_webhook',       array( $this, 'ajax_test_webhook' ) );
 	}
 
 	/* ──────────────────────────────────────────────────────────────
