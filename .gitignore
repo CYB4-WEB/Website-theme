@@ -38,5 +38,12 @@ Desktop.ini
 dist/
 build/
 
+# Uploaded files (user content)
+uploads/
+!uploads/.gitkeep
+
+# Composer (vendor is generated, but lock file is tracked)
+vendor/
+
 # Compiled CSS/JS maps (optional, uncomment if not needed)
 # *.map

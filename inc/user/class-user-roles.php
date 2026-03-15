@@ -48,7 +48,8 @@ class Starter_User_Roles {
 	 * Constructor.
 	 */
 	private function __construct() {
-		$this->define_roles();
+		// Defer define_roles() to init so translated display names are available.
+		add_action( 'init', array( $this, 'define_roles' ), 0 );
 		$this->register_hooks();
 	}
 
@@ -74,7 +75,7 @@ class Starter_User_Roles {
 	 *
 	 * @return void
 	 */
-	private function define_roles() {
+	public function define_roles() {
 		// Base member capabilities.
 		$member_caps = array(
 			'read'                       => true,

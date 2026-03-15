@@ -170,16 +170,30 @@ class Starter_Manga_Admin {
 		$per_page = 30;
 		$offset   = ( $paged - 1 ) * $per_page;
 
-		$where  = $manga_id ? $wpdb->prepare( 'WHERE c.manga_id = %d', $manga_id ) : '';
-		$total  = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}starter_chapters c {$where}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-		$chapters = $wpdb->get_results( $wpdb->prepare( // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-			"SELECT c.*, p.post_title AS manga_title FROM {$wpdb->prefix}starter_chapters c
-			 LEFT JOIN {$wpdb->posts} p ON p.ID = c.manga_id
-			 {$where}
-			 ORDER BY c.manga_id ASC, c.chapter_number ASC
-			 LIMIT %d OFFSET %d",
-			$per_page, $offset
-		) );
+		/* Fully parameterised queries — no interpolated WHERE clause */
+		if ( $manga_id ) {
+			$total = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}starter_chapters c WHERE c.manga_id = %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$manga_id
+			) );
+			$chapters = $wpdb->get_results( $wpdb->prepare(
+				"SELECT c.*, p.post_title AS manga_title FROM {$wpdb->prefix}starter_chapters c
+				 LEFT JOIN {$wpdb->posts} p ON p.ID = c.manga_id
+				 WHERE c.manga_id = %d
+				 ORDER BY c.chapter_number ASC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$manga_id, $per_page, $offset
+			) );
+		} else {
+			$total = (int) $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$wpdb->prefix}starter_chapters" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			);
+			$chapters = $wpdb->get_results( $wpdb->prepare(
+				"SELECT c.*, p.post_title AS manga_title FROM {$wpdb->prefix}starter_chapters c
+				 LEFT JOIN {$wpdb->posts} p ON p.ID = c.manga_id
+				 ORDER BY c.manga_id ASC, c.chapter_number ASC LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$per_page, $offset
+			) );
+		}
 
 		$total_pages = ceil( $total / $per_page );
 
@@ -557,32 +571,45 @@ class Starter_Manga_Admin {
 				Array.from(files).forEach(function(f){
 					var r=new FileReader();
 					r.onload=function(e){
-						$prev.append('<div class="alpha-img-thumb"><img src="'+e.target.result+'" alt=""><span>'+f.name+'</span></div>');
+						/* XSS-safe: use DOM methods instead of HTML string concat */
+						var $wrap=$('<div class="alpha-img-thumb"/>');
+						var $img=$('<img alt="">').attr('src', e.target.result);
+						var $lbl=$('<span/>').text(f.name); /* .text() escapes HTML */
+						$prev.append($wrap.append($img, $lbl));
 					};
 					r.readAsDataURL(f);
 				});
 			});
+
+			/* Shared safe status helper — XSS-safe via jQuery .text() */
+			function setStatus($el, ok, msg){
+				var $inner = $('<span/>').text(msg);
+				$inner.css('color', ok ? '#46b450' : '#dc3232');
+				$inner.prepend(ok ? '✅ ' : '❌ ');
+				$el.empty().append($inner);
+			}
 
 			/* Form submit */
 			$('#admin-upload-chapter-form').on('submit',function(e){
 				e.preventDefault();
 				var $btn=$('#admin-save-chapter-btn'), $status=$('#admin-chapter-save-status');
 				$btn.prop('disabled',true).text('Uploading…');
-				$status.text('');
+				$status.empty();
 				var fd=new FormData(this);
 				fd.append('action','starter_admin_save_chapter');
 				$.ajax({ url:'<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>', method:'POST', data:fd, processData:false, contentType:false,
 					success:function(r){
-						if(r.success){
-							$status.html('<span style="color:#46b450">✅ '+r.data.message+'</span>');
-							$btn.prop('disabled',false).text('Upload Chapter');
-							if(r.data.redirect) setTimeout(function(){ window.location=r.data.redirect; },1000);
-						} else {
-							$status.html('<span style="color:#dc3232">❌ '+( r.data.message||'Error' )+'</span>');
-							$btn.prop('disabled',false).text('Upload Chapter');
+						setStatus($status, r.success, r.success ? (r.data.message||'Saved!') : (r.data.message||'Error'));
+						$btn.prop('disabled',false).text('Upload Chapter');
+						if(r.success && r.data.redirect){
+							/* Open Redirect fix: only follow same-origin paths */
+							var redir = String(r.data.redirect);
+							if(/^\/[^/]/.test(redir) || /^https?:\/\/(www\.)?<?php echo esc_js( wp_parse_url( home_url(), PHP_URL_HOST ) ); ?>/.test(redir)){
+								setTimeout(function(){ window.location.href = redir; }, 1000);
+							}
 						}
 					},
-					error:function(){ $status.html('<span style="color:#dc3232">❌ Network error.</span>'); $btn.prop('disabled',false).text('Upload Chapter'); }
+					error:function(){ setStatus($status, false, 'Network error.'); $btn.prop('disabled',false).text('Upload Chapter'); }
 				});
 			});
 		});
@@ -662,28 +689,31 @@ class Starter_Manga_Admin {
 					if(r.success){
 						var d=r.data;
 						$('#mu-series-id').val(d.series_id||'');
-						var html='<div class="alpha-mu-preview-inner">';
-						if(d.cover_url) html+='<img src="'+d.cover_url+'" class="alpha-mu-cover" alt="">';
-						html+='<div class="alpha-mu-info">';
-						html+='<h3>'+d.title+'</h3>';
-						if(d.author) html+='<p><strong>Author:</strong> '+d.author+'</p>';
-						if(d.artist) html+='<p><strong>Artist:</strong> '+d.artist+'</p>';
-						if(d.genres) html+='<p><strong>Genres:</strong> '+d.genres.join(', ')+'</p>';
-						if(d.description) html+='<p class="alpha-mu-desc">'+d.description.substring(0,300)+'…</p>';
-						html+='</div></div>';
-						$('#mu-preview').html(html).show();
-						$('#mu-form-fields').html(
-							'<input type="hidden" name="title" value="'+d.title+'">'
-							+'<input type="hidden" name="author" value="'+(d.author||'')+'">'
-							+'<input type="hidden" name="artist" value="'+(d.artist||'')+'">'
-							+'<input type="hidden" name="description" value="'+(d.description||'')+'">'
-							+'<input type="hidden" name="cover_url" value="'+(d.cover_url||'')+'">'
-							+'<input type="hidden" name="genres" value="'+(d.genres||[]).join(',')+'">'
-							+'<input type="hidden" name="year" value="'+(d.year||'')+'">'
-						);
+						/* XSS-safe: build DOM nodes with jQuery .text()/.attr() */
+						var $inner=$('<div class="alpha-mu-preview-inner"/>');
+						if(d.cover_url){ $inner.append($('<img class="alpha-mu-cover" alt=""/>').attr('src',d.cover_url)); }
+						var $info=$('<div class="alpha-mu-info"/>');
+						$info.append($('<h3/>').text(d.title||''));
+						if(d.author) $info.append($('<p/>').append($('<strong/>').text('Author: ')).append(document.createTextNode(d.author)));
+						if(d.artist) $info.append($('<p/>').append($('<strong/>').text('Artist: ')).append(document.createTextNode(d.artist)));
+						if(d.genres) $info.append($('<p/>').append($('<strong/>').text('Genres: ')).append(document.createTextNode(d.genres.join(', '))));
+						if(d.description) $info.append($('<p class="alpha-mu-desc"/>').text((d.description||'').substring(0,300)+'…'));
+						$inner.append($info);
+						$('#mu-preview').empty().append($inner).show();
+						/* Hidden inputs — use .val() to avoid attribute injection */
+						var $ff=$('#mu-form-fields').empty();
+						function appendHidden(name,val){ $ff.append($('<input type="hidden"/>').attr('name',name).val(val)); }
+						appendHidden('title', d.title||'');
+						appendHidden('author', d.author||'');
+						appendHidden('artist', d.artist||'');
+						appendHidden('description', d.description||'');
+						appendHidden('cover_url', d.cover_url||'');
+						appendHidden('genres', (d.genres||[]).join(','));
+						appendHidden('year', d.year||'');
 						$('#mu-import-form').show();
 					} else {
-						$('#mu-preview').html('<div class="alpha-notice alpha-notice--error">'+r.data.message+'</div>').show();
+						var $errBox=$('<div class="alpha-notice alpha-notice--error"/>').text(r.data.message||'Error');
+						$('#mu-preview').empty().append($errBox).show();
 					}
 				});
 			});
@@ -697,9 +727,11 @@ class Starter_Manga_Admin {
 				$.ajax({url:'<?php echo esc_url( admin_url( 'admin-ajax.php' ) ); ?>',method:'POST',data:fd,processData:false,contentType:false,
 					success:function(r){
 						if(r.success){
-							$status.html('<span style="color:#46b450">✅ Imported! <a href="'+r.data.edit_url+'">Edit post →</a></span>');
+							/* XSS-safe: use .text() and .attr() */
+							var $a=$('<a/>').attr('href', /^https?:\/\//.test(r.data.edit_url||'') || /^\//.test(r.data.edit_url||'') ? r.data.edit_url : '#').text('Edit post →');
+							$status.empty().append($('<span style="color:#46b450"/>').text('✅ Imported! ').append($a));
 						} else {
-							$status.html('<span style="color:#dc3232">❌ '+(r.data.message||'Error')+'</span>');
+							$status.empty().append($('<span style="color:#dc3232"/>').text('❌ '+(r.data.message||'Error')));
 						}
 					}
 				});
@@ -812,6 +844,25 @@ class Starter_Manga_Admin {
 
 		if ( ! $manga_id || $chapter_num <= 0 ) {
 			wp_send_json_error( array( 'message' => 'Invalid manga or chapter number.' ) );
+		}
+
+		/* Ownership / IDOR check: non-admins may only edit manga they authored. */
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$post = get_post( $manga_id );
+			if ( ! $post || (int) $post->post_author !== get_current_user_id() ) {
+				wp_send_json_error( array( 'message' => 'You do not have permission to edit chapters for this title.' ) );
+			}
+		}
+
+		/* For updates, verify the chapter actually belongs to the claimed manga. */
+		if ( $chapter_id ) {
+			$existing_manga = (int) $wpdb->get_var( $wpdb->prepare(
+				"SELECT manga_id FROM {$wpdb->prefix}starter_chapters WHERE id = %d LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				$chapter_id
+			) );
+			if ( $existing_manga !== $manga_id ) {
+				wp_send_json_error( array( 'message' => 'Chapter does not belong to the specified manga.' ) );
+			}
 		}
 
 		/* Build chapter data based on type */

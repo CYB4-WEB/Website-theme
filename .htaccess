@@ -1,107 +1,46 @@
-# =============================================================================
-# Project Alpha - Security Rules
-# =============================================================================
-# Place this file in the theme directory: wp-content/themes/starter-theme/
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# Block access to environment files
-# -----------------------------------------------------------------------------
-<FilesMatch "^\.env(\..+)?$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order deny,allow
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# -----------------------------------------------------------------------------
-# Block direct PHP execution in inc/ directory
-# -----------------------------------------------------------------------------
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-
-    # Deny direct access to PHP files in inc/ directory
-    RewriteRule ^inc/(.+)\.php$ - [F,L,NC]
-
-    # Deny direct access to PHP files in sample-data/ directory
-    RewriteRule ^sample-data/(.*)$ - [F,L,NC]
-
-    # Deny direct access to PHP files in languages/ directory
-    RewriteRule ^languages/(.*)$ - [F,L,NC]
-</IfModule>
-
-# -----------------------------------------------------------------------------
-# Block access to sensitive file types
-# -----------------------------------------------------------------------------
-<FilesMatch "\.(log|sql|sqlite|bak|old|orig|save|swp|swo|tmp|temp|dist|config|ini|sh|bash|zsh|env|env\..*)$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order deny,allow
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# Block access to common backup / sensitive files by name
-<FilesMatch "(^#.*#|~$|\.bak$|\.orig$|wp-config\.php\.bak|readme\.html|license\.txt)">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order deny,allow
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
-# -----------------------------------------------------------------------------
-# Disable directory browsing
-# -----------------------------------------------------------------------------
+# Project Alpha – Apache rewrite rules
 Options -Indexes
 
-# -----------------------------------------------------------------------------
-# Block access to hidden files and directories (dot-files)
-# -----------------------------------------------------------------------------
+# Block access to sensitive files
+<FilesMatch "\.(env|log|sql|sh|bak|git)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    # Block access to hidden files (except .well-known for SSL validation)
-    RewriteCond %{REQUEST_URI} "!(^|/)\.well-known/([^./]+./)+" [NC]
-    RewriteRule "(^|/)\." - [F,L]
+    RewriteBase /
+
+    # Serve existing files & directories directly
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Block direct access to src/, views/, config/, migrations/
+    RewriteRule ^(src|views|config|migrations|vendor)(/.*)?$ - [F,L]
+
+    # Route everything else through index.php
+    RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 
-# -----------------------------------------------------------------------------
-# Security Headers
-# -----------------------------------------------------------------------------
+# Security headers
 <IfModule mod_headers.c>
-    # Prevent MIME type sniffing
-    Header set X-Content-Type-Options "nosniff"
-
-    # Enable XSS protection in older browsers
-    Header set X-XSS-Protection "1; mode=block"
-
-    # Prevent clickjacking by disallowing framing
-    Header set X-Frame-Options "SAMEORIGIN"
-
-    # Enforce HTTPS via Strict Transport Security (1 year)
-    Header set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-
-    # Referrer policy - send origin only on cross-origin requests
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-
-    # Permissions policy - restrict access to sensitive browser features
-    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
-
-    # Remove server signature / powered-by headers where possible
-    Header unset X-Powered-By
-    Header unset Server
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
 </IfModule>
 
-# -----------------------------------------------------------------------------
-# Prevent PHP file uploads from being executed in uploads
-# -----------------------------------------------------------------------------
-<IfModule mod_rewrite.c>
-    RewriteRule ^uploads/(.+)\.php$ - [F,L,NC]
+# Gzip compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json
+</IfModule>
+
+# Browser caching for assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/png  "access plus 1 month"
+    ExpiresByType image/webp "access plus 1 month"
+    ExpiresByType text/css   "access plus 1 week"
+    ExpiresByType application/javascript "access plus 1 week"
 </IfModule>

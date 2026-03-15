@@ -70,6 +70,23 @@ class Starter_Admin_Settings {
 	 * Constructor.
 	 */
 	private function __construct() {
+		// Tabs contain translated strings — defer until after translations are loaded.
+		add_action( 'init',          array( $this, 'init_tabs' ), 0 );
+		add_action( 'admin_menu',    array( $this, 'register_menu' ) );
+		add_action( 'admin_init',                         array( $this, 'register_settings' ) );
+		add_action( 'admin_notices',                      array( $this, 'settings_saved_notice' ) );
+		add_action( 'wp_ajax_starter_test_webhook',       array( $this, 'ajax_test_webhook' ) );
+	}
+
+	/* ──────────────────────────────────────────────────────────────
+	 * Tabs initialisation (deferred to `init` so translations are loaded)
+	 * ─────────────────────────────────────────────────────────── */
+
+	/**
+	 * Populate the tabs array after translations are available.
+	 * Hooked to `init` with priority 0.
+	 */
+	public function init_tabs() {
 		$this->tabs = array(
 			'general'  => __( 'General', 'starter-theme' ),
 			'api'      => __( 'API Keys', 'starter-theme' ),
@@ -80,10 +97,6 @@ class Starter_Admin_Settings {
 			'security' => __( 'Security', 'starter-theme' ),
 			'webhooks' => __( 'Webhooks', 'starter-theme' ),
 		);
-
-		add_action( 'admin_menu',    array( $this, 'register_menu' ) );
-		add_action( 'admin_init',    array( $this, 'register_settings' ) );
-		add_action( 'admin_notices', array( $this, 'settings_saved_notice' ) );
 	}
 
 	/* ──────────────────────────────────────────────────────────────
@@ -147,11 +160,33 @@ class Starter_Admin_Settings {
 		$options = $this->get_all_options();
 
 		foreach ( $options as $key => $args ) {
-			register_setting( self::OPTION_GROUP, $key, array(
-				'type'              => $args['type'] ?? 'string',
-				'sanitize_callback' => $args['sanitize'] ?? 'sanitize_text_field',
-				'default'           => $args['default'] ?? '',
-			) );
+			$is_password      = ! empty( $args['password'] );
+			$sanitize_cb      = $args['sanitize'] ?? 'sanitize_text_field';
+
+			if ( $is_password ) {
+				/* Wrap sanitize callback: if new value is blank, keep the existing stored value. */
+				$option_key = $key;
+				register_setting( self::OPTION_GROUP, $key, array(
+					'type'              => $args['type'] ?? 'string',
+					'sanitize_callback' => function( $new_value ) use ( $option_key, $sanitize_cb ) {
+						$new_value = call_user_func( $sanitize_cb, $new_value ?? '' );
+						if ( '' === $new_value ) {
+							/* Blank submitted — preserve existing secret */
+							return get_option( $option_key, '' );
+						}
+						return $new_value;
+					},
+					'default'           => $args['default'] ?? '',
+				) );
+			} else {
+				register_setting( self::OPTION_GROUP, $key, array(
+					'type'              => $args['type'] ?? 'string',
+					'sanitize_callback' => function( $value ) use ( $sanitize_cb ) {
+						return call_user_func( $sanitize_cb, $value ?? '' );
+					},
+					'default'           => $args['default'] ?? '',
+				) );
+			}
 		}
 	}
 
@@ -167,16 +202,23 @@ class Starter_Admin_Settings {
 
 		/* Quick stats */
 		$total_manga    = wp_count_posts( 'wp-manga' )->publish ?? 0;
-		$total_chapters = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}starter_chapters WHERE chapter_status = 'publish'" );
-		$total_views    = (int) $wpdb->get_var( "SELECT SUM(CAST(meta_value AS UNSIGNED)) FROM {$wpdb->postmeta} WHERE meta_key = '_views'" );
-		$pending_manga  = wp_count_posts( 'wp-manga' )->pending ?? 0;
+		$total_chapters = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT COUNT(*) FROM {$wpdb->prefix}starter_chapters WHERE chapter_status = %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			'publish'
+		) );
+		$total_views = (int) $wpdb->get_var( $wpdb->prepare(
+			"SELECT SUM(CAST(meta_value AS UNSIGNED)) FROM {$wpdb->postmeta} WHERE meta_key = %s",
+			'_views'
+		) );
+		$pending_manga = wp_count_posts( 'wp-manga' )->pending ?? 0;
 
-		$recent_chapters = $wpdb->get_results(
+		$recent_chapters = $wpdb->get_results( $wpdb->prepare(
 			"SELECT c.*, p.post_title AS manga_title, p.ID AS manga_post_id
 			 FROM {$wpdb->prefix}starter_chapters c
 			 LEFT JOIN {$wpdb->posts} p ON p.ID = c.manga_id
-			 ORDER BY c.created_at DESC LIMIT 10"
-		);
+			 ORDER BY c.created_at DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			10
+		) );
 		?>
 		<div class="wrap starter-admin-wrap">
 			<h1 class="starter-admin-page-title">
@@ -273,10 +315,13 @@ class Starter_Admin_Settings {
 						<?php foreach ( $recent_chapters as $ch ) : ?>
 						<tr>
 							<td>
-								<?php if ( $ch->manga_post_id ) : ?>
-									<a href="<?php echo esc_url( get_edit_post_link( $ch->manga_post_id ) ); ?>">
+								<?php $edit_link = $ch->manga_post_id ? get_edit_post_link( $ch->manga_post_id ) : null; ?>
+								<?php if ( $edit_link ) : ?>
+									<a href="<?php echo esc_url( $edit_link ); ?>">
 										<?php echo esc_html( $ch->manga_title ?: __( '(no title)', 'starter-theme' ) ); ?>
 									</a>
+								<?php elseif ( $ch->manga_title ) : ?>
+									<?php echo esc_html( $ch->manga_title ); ?>
 								<?php else : ?>
 									<?php echo esc_html( __( 'Unknown', 'starter-theme' ) ); ?>
 								<?php endif; ?>
@@ -635,8 +680,8 @@ class Starter_Admin_Settings {
 				var $btn=$(this), $s=$('#sample-data-status');
 				$btn.text('Installing…').prop('disabled',true);
 				$.post(ajaxurl,{action:'starter_insert_sample_data',nonce:$btn.data('nonce')},function(r){
-					if(r.success){ $s.html('<span style="color:#46b450">✅ Installed '+r.data.inserted+' items. Refreshing…</span>'); setTimeout(()=>location.reload(),1500); }
-					else { $s.html('<span style="color:#dc3232">❌ '+r.data.message+'</span>'); $btn.prop('disabled',false).text('Install Sample Data'); }
+					if(r.success){ var n=parseInt(r.data.inserted,10)||0; $s.empty().append($('<span style="color:#46b450"/>').text('✅ Installed '+n+' items. Refreshing…')); setTimeout(()=>location.reload(),1500); }
+					else { $s.empty().append($('<span style="color:#dc3232"/>').text('❌ '+(r.data.message||'Error'))); $btn.prop('disabled',false).text('Install Sample Data'); }
 				});
 			});
 			$('#remove-sample-btn').on('click',function(){
@@ -644,8 +689,8 @@ class Starter_Admin_Settings {
 				var $btn=$(this),$s=$('#sample-data-status');
 				$btn.text('Removing…').prop('disabled',true);
 				$.post(ajaxurl,{action:'starter_remove_sample_data',nonce:$btn.data('nonce')},function(r){
-					if(r.success){ $s.html('<span style="color:#46b450">✅ Removed '+r.data.deleted+' items. Refreshing…</span>'); setTimeout(()=>location.reload(),1500); }
-					else { $s.html('<span style="color:#dc3232">❌ Error.</span>'); $btn.prop('disabled',false).text('Remove Sample Data'); }
+					if(r.success){ var n=parseInt(r.data.deleted,10)||0; $s.empty().append($('<span style="color:#46b450"/>').text('✅ Removed '+n+' items. Refreshing…')); setTimeout(()=>location.reload(),1500); }
+					else { $s.empty().append($('<span style="color:#dc3232"/>').text('❌ Error.')); $btn.prop('disabled',false).text('Remove Sample Data'); }
 				});
 			});
 		})(jQuery);
@@ -677,14 +722,22 @@ class Starter_Admin_Settings {
 	 * Render a password input field (masked).
 	 */
 	private function field_password( $key, $label, $placeholder = '' ) {
-		$value = get_option( $key, '' );
+		$has_value = (bool) get_option( $key, '' );
+		/* Never echo stored secrets back into the page (sensitive data exposure).
+		 * Leave the field empty; only save if the admin types a new value.
+		 * A "●●●●●● set" hint is shown when a value already exists. */
 		?>
 		<div class="alpha-field">
 			<label for="<?php echo esc_attr( $key ); ?>" class="alpha-field__label"><?php echo esc_html( $label ); ?></label>
+			<?php if ( $has_value ) : ?>
+			<p class="description" style="margin-bottom:4px;color:#666;">
+				<?php esc_html_e( 'A value is stored. Leave blank to keep it, or type a new value to replace it.', 'starter-theme' ); ?>
+			</p>
+			<?php endif; ?>
 			<div class="alpha-field__password-wrap">
 				<input type="password" id="<?php echo esc_attr( $key ); ?>" name="<?php echo esc_attr( $key ); ?>"
-				       value="<?php echo esc_attr( $value ); ?>"
-				       placeholder="<?php echo esc_attr( $placeholder ); ?>"
+				       value=""
+				       placeholder="<?php echo $has_value ? esc_attr( '●●●●●●●● (unchanged)' ) : esc_attr( $placeholder ); ?>"
 				       class="alpha-field__input regular-text" autocomplete="new-password">
 				<button type="button" class="alpha-toggle-pw" aria-label="<?php esc_attr_e( 'Toggle visibility', 'starter-theme' ); ?>">
 					<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -781,19 +834,19 @@ class Starter_Admin_Settings {
 			'starter_frontend_upload'              => array( 'type' => 'string', 'default' => 'on' ),
 			'starter_mangaupdates_api_key'         => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
 			'starter_recaptcha_site_key'           => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_recaptcha_secret_key'         => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_telegram_bot_token'           => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
+			'starter_recaptcha_secret_key'         => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'password' => true ),
+			'starter_telegram_bot_token'           => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'password' => true ),
 			'starter_telegram_chat_id'             => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_discord_webhook_url'          => array( 'type' => 'string', 'sanitize' => 'esc_url_raw' ),
+			'starter_discord_webhook_url'          => array( 'type' => 'string', 'sanitize' => 'esc_url_raw', 'password' => true ),
 			'starter_s3_bucket'                    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
 			'starter_s3_region'                    => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_s3_access_key'                => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_s3_secret_key'                => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
+			'starter_s3_access_key'                => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'password' => true ),
+			'starter_s3_secret_key'                => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'password' => true ),
 			'starter_s3_cdn_url'                   => array( 'type' => 'string', 'sanitize' => 'esc_url_raw' ),
 			'starter_storage_driver'               => array( 'type' => 'string', 'default' => 'local' ),
 			'starter_ftp_host'                     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
 			'starter_ftp_user'                     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
-			'starter_ftp_password'                 => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
+			'starter_ftp_password'                 => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field', 'password' => true ),
 			'starter_ftp_port'                     => array( 'type' => 'integer', 'default' => 21, 'sanitize' => 'absint' ),
 			'starter_ftp_path'                     => array( 'type' => 'string', 'sanitize' => 'sanitize_text_field' ),
 			'starter_ftp_url'                      => array( 'type' => 'string', 'sanitize' => 'esc_url_raw' ),
@@ -847,6 +900,86 @@ class Starter_Admin_Settings {
 				<p><?php esc_html_e( '✅ Alpha settings saved.', 'starter-theme' ); ?></p>
 			</div>
 			<?php
+		}
+	}
+
+	/* ──────────────────────────────────────────────────────────────
+	 * Webhook test AJAX
+	 * ─────────────────────────────────────────────────────────── */
+
+	/**
+	 * AJAX: Send a test notification to the configured webhook.
+	 */
+	public function ajax_test_webhook() {
+		check_ajax_referer( 'starter_test_webhook', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Permission denied.', 'starter-theme' ) ) );
+		}
+
+		$channel = sanitize_key( $_POST['channel'] ?? 'telegram' );
+
+		if ( 'telegram' === $channel ) {
+			$bot_token = get_option( 'starter_telegram_bot_token', '' );
+			$chat_id   = get_option( 'starter_telegram_chat_id', '' );
+
+			if ( ! $bot_token || ! $chat_id ) {
+				wp_send_json_error( array( 'message' => __( 'Telegram credentials not configured.', 'starter-theme' ) ) );
+			}
+
+			$response = wp_remote_post(
+				'https://api.telegram.org/bot' . rawurlencode( $bot_token ) . '/sendMessage',
+				array(
+					'body'    => array(
+						'chat_id' => $chat_id,
+						'text'    => __( '✅ Alpha Manga: Telegram webhook test successful!', 'starter-theme' ),
+					),
+					'timeout' => 10,
+				)
+			);
+		} elseif ( 'discord' === $channel ) {
+			$webhook_url = get_option( 'starter_discord_webhook_url', '' );
+
+			if ( ! $webhook_url ) {
+				wp_send_json_error( array( 'message' => __( 'Discord webhook URL not configured.', 'starter-theme' ) ) );
+			}
+
+			/* Validate it looks like a Discord webhook URL. */
+			if ( ! preg_match( '#^https://discord(?:app)?\.com/api/webhooks/#', $webhook_url ) ) {
+				wp_send_json_error( array( 'message' => __( 'Discord webhook URL appears invalid.', 'starter-theme' ) ) );
+			}
+
+			$response = wp_remote_post(
+				$webhook_url,
+				array(
+					'headers' => array( 'Content-Type' => 'application/json' ),
+					'body'    => wp_json_encode( array(
+						'content' => __( '✅ Alpha Manga: Discord webhook test successful!', 'starter-theme' ),
+					) ),
+					'timeout' => 10,
+				)
+			);
+		} else {
+			wp_send_json_error( array( 'message' => __( 'Unknown channel.', 'starter-theme' ) ) );
+		}
+
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( array( 'message' => $response->get_error_message() ) );
+		}
+
+		$code = wp_remote_retrieve_response_code( $response );
+		if ( $code >= 200 && $code < 300 ) {
+			wp_send_json_success( array( 'message' => sprintf(
+				/* translators: %s: channel name */
+				__( 'Test sent successfully via %s!', 'starter-theme' ),
+				ucfirst( $channel )
+			) ) );
+		} else {
+			wp_send_json_error( array( 'message' => sprintf(
+				/* translators: %d: HTTP status code */
+				__( 'Webhook returned HTTP %d.', 'starter-theme' ),
+				$code
+			) ) );
 		}
 	}
 }
