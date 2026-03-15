@@ -186,11 +186,12 @@ if ( class_exists( 'Starter_Path_Obfuscation' ) )  { Starter_Path_Obfuscation::g
 if ( class_exists( 'Starter_Storage_Manager' ) ) { Starter_Storage_Manager::get_instance(); }
 
 /* -- SEO ------------------------------------------------------------------- */
-if ( class_exists( 'Starter_SEO_Manager' ) )   { Starter_SEO_Manager::get_instance(); }
-if ( class_exists( 'Starter_Auto_Keywords' ) ) { Starter_Auto_Keywords::get_instance(); }
-if ( class_exists( 'Starter_Schema_Markup' ) ) { Starter_Schema_Markup::get_instance(); }
-if ( class_exists( 'Starter_Manga_Feed' ) )    { Starter_Manga_Feed::get_instance(); }
-if ( class_exists( 'Starter_Manga_Sitemap' ) ) { new Starter_Manga_Sitemap(); }
+// All SEO classes are non-singleton; they expose init() not get_instance().
+if ( class_exists( 'Starter_SEO_Manager' ) )   { ( new Starter_SEO_Manager() )->init(); }
+if ( class_exists( 'Starter_Auto_Keywords' ) ) { ( new Starter_Auto_Keywords() )->init(); }
+if ( class_exists( 'Starter_Schema_Markup' ) ) { ( new Starter_Schema_Markup() )->init(); }
+if ( class_exists( 'Starter_Manga_Feed' ) )    { ( new Starter_Manga_Feed() )->init(); }
+if ( class_exists( 'Starter_Manga_Sitemap' ) ) { ( new Starter_Manga_Sitemap() )->init(); }
 
 /* -- Widgets --------------------------------------------------------------- */
 add_action( 'widgets_init', function() {

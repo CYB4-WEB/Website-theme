@@ -104,10 +104,20 @@ class Starter_Manga_Import {
 	 */
 	private function register_hooks() {
 		add_action( 'init', array( $this, 'register_ajax_handlers' ) );
+		// Defer cron scheduling to init so wp_get_schedules() doesn't fire
+		// cron_schedules filter before other plugins have loaded textdomains.
+		add_action( 'init', array( $this, 'schedule_cleanup_cron' ) );
 		add_action( 'starter_process_zip_background', array( $this, 'process_zip_background' ), 10, 3 );
 		add_action( 'starter_cleanup_temp_dir', array( $this, 'cleanup_temp_directory' ) );
+	}
 
-		// Schedule hourly cleanup if not already scheduled.
+	/**
+	 * Schedule the hourly temp-dir cleanup cron event.
+	 * Called on init so cron_schedules filters run after textdomains are loaded.
+	 *
+	 * @return void
+	 */
+	public function schedule_cleanup_cron() {
 		if ( ! wp_next_scheduled( 'starter_cleanup_temp_dir' ) ) {
 			wp_schedule_event( time(), 'hourly', 'starter_cleanup_temp_dir' );
 		}
